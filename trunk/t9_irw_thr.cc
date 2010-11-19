@@ -2,8 +2,8 @@
 	LIT9 ( Linux Interface T9 ) - Human computer interface based on a TV remote control to interact with a Linux operating system.
 	
 	Copyright (C)  2010 
-		Davide Mulfari: 	davidemulfari@gmail.com
-		Nicola Peditto: 	n.peditto@gmail.com
+		Davide Mulfari:	davidemulfari@gmail.com
+		Nicola Peditto:	n.peditto@gmail.com
 		Carmelo Romeo:	carmelo.romeo85@gmail.com 
 		Fabio Verboso:	fabio.verboso@gmail.com	
 
