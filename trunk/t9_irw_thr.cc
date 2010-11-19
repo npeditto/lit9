@@ -1,5 +1,12 @@
+/*****************************************************************************************************************************
+	LIT9 ( Linux Interface T9 ) - Human computer interface based on a TV remote control to interact with a Linux operating system.
+	
+	Copyright (C)  2010 
+		Davide Mulfari: 	davidemulfari@gmail.com
+		Nicola Peditto: 	n.peditto@gmail.com
+		Carmelo Romeo:	carmelo.romeo85@gmail.com 
+		Fabio Verboso:	fabio.verboso@gmail.com	
 
-/*
 	This file is part of LIT9.
 
 	LIT9 is free software: you can redistribute it and/or modify
@@ -15,21 +22,10 @@
 	You should have received a copy of the GNU General Public License
 	along with LIT9.  If not, see <http://www.gnu.org/licenses/>.
 
-**********************************************************************************************
-	LIT9 ( Linux Interface T9 )
+*****************************************************************************************************************************
 
-	Description:
-	Human computer interface based on a TV remote control to interact with a Linux operating system.
-
-	Developed by
-	Davide Mulfari
-	Nicola Peditto
-	Carmelo Romeo
-	Fabio Verboso
-
-	at Univesity of Messina - Faculty - Faculty of Engineering - Visilab
-
-
+	Developed at Univesity of Messina - Faculty of Engineering - Visilab
+	
 	Based on 
 		- LIRC code http://www.lirc.org/
 
@@ -37,9 +33,7 @@
 			copyright  (C) 2000 by Markku Korsumäki  
 			email: markku.t.korsumaki@mbnet.fi
 		
-**********************************************************************************************
-
-*/
+****************************************************************************************************************************/
 
 
 
