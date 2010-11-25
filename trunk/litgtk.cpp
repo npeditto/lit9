@@ -29,10 +29,6 @@
         Based on 
                 - LIRC code http://www.lirc.org/
 
-                - Predictive text technology (T9)  
-                        copyright  (C) 2000 by Markku Korsumäki  
-                        email: markku.t.korsumaki@mbnet.fi
-                
 ****************************************************************************************************************************/
 
 
@@ -66,9 +62,16 @@ int indice;
 gchar *sel;
 const   gchar   *list_item_data_key="list_item_data";
 void *thtel (void *arg);
-
-
-
+int statot9;
+struct nodo
+{
+	char parola[30];
+        char codice[30];
+        struct nodo *next;
+};
+char codicet9[30];
+struct nodo *lista;
+int luncodicet9;
   GtkWidget *window;
   GtkWidget *fixed;
   GtkWidget       *vbox;
@@ -147,8 +150,8 @@ void caricamatrice ()
         matrice[5][4]=XK_7;
         matrice[6][0]=XK_T;
         matrice[6][1]=XK_U;
-        matrice[6][2]=XK_V;
         matrice[6][3]=XK_ugrave;
+        matrice[6][2]=XK_V;
         matrice[6][4]=XK_8;
         matrice[7][0]=XK_W;
         matrice[7][1]=XK_X;
@@ -182,8 +185,34 @@ void tappa()
   
 XCloseDisplay(display);
 }
+void gestionet9 (int tasto)
+{
+   sprintf(codicet9,"%s%d",codicet9,tasto);
+   printf("\nTasti premuti: %s\n",codicet9);
+   luncodicet9=luncodicet9+1;
+   struct nodo *t=lista;
+   int trovo=0;
+   GtkWidget       *list_item;
+    GList           *dlist;
+   dlist = (GList*)malloc(sizeof(GList));
+   while (t!=NULL && trovo <5)
+   {
+	if (strncmp(codicet9, t->codice, luncodicet9)==0)
+	{
+		trovo=trovo+1;
+		printf("%s\n",t->parola);
+		list_item=gtk_list_item_new_with_label(t->parola);
+        dlist=g_list_append(dlist, list_item);
+	}
+	t=t->next;
+    }
+     
 
+}
 void caricalist (int tasto, Display* display)
+{
+if (statot9==1) gestionet9(tasto);
+else
 {
     if (tasto==tastoprec) scorri();
 else
@@ -282,7 +311,7 @@ tastocor=tasto;
 
    }
 
-
+}
 void elabora(char *codice)
 {
    gint x=0, y=0, passo=5;
@@ -292,7 +321,20 @@ void elabora(char *codice)
 gchar  *str;
 str = (gchar*)malloc(sizeof(gchar));
 sprintf(str,"");
-   if (strcmp(codice, "2fdf807")==0)
+   if (strcmp(codice, "2fd52ad")==0)
+   {
+	if (statot9==0)
+        {
+        	statot9=1;
+                printf("\nT9 attivo\n");
+        }
+        else
+        {
+                statot9=0;
+                printf("\nT9 disattivato");
+         }
+   }
+   else if (strcmp(codice, "2fdf807")==0)
    {
         scorri();
    }
@@ -353,7 +395,9 @@ int res;
    else if (strcmp(codice, "2fdc23d")==0) tappa();
    
 else {
-   int tasto=XK_A;  
+   int tasto=XK_A;
+   sprintf(codicet9,"");
+   luncodicet9=0;
    if (strcmp(codice, "2fd12ed")==0) tasto=XK_Tab;
    else if (strcmp(codice, "2fd926d")==0) tasto =XK_Return;
    else if (strcmp(codice, "2fd58a7")==0) tasto=XK_Up;
@@ -429,7 +473,57 @@ void *thtel(void *arg)
 }
 
 
+void caricafilet9()
+{
+   lista=NULL;
 
+   struct nodo *p = (struct nodo *)malloc(sizeof(struct nodo));
+   FILE *pfile;
+   pfile = fopen ("parole.txt","r");
+   if (pfile ==NULL) {
+         printf("\nerrore file dizionario\n\n");
+        exit(EXIT_FAILURE);
+   }
+   while(1)
+   {
+        if (fscanf(pfile,"%s %s", p->codice, p->parola)==EOF) break;
+//	printf ("\n%s %s\n", p->codice, p->parola);
+
+
+	if (lista ==NULL)
+        {
+		lista = (struct nodo *)malloc(sizeof(struct nodo));
+		sprintf (lista->parola,"%s",p->parola);
+		sprintf(lista->codice,"%s",p->codice);
+		lista->next=NULL;
+        }
+        else
+	{
+		struct nodo *r = lista;
+		struct nodo *q = lista;
+		while (q!=NULL)
+		{
+			r=q;
+			q=q->next;
+		} 
+		q= (struct nodo *)malloc(sizeof(struct nodo));
+		sprintf (q->parola,"%s",p->parola);
+		sprintf(q->codice,"%s",p->codice);
+		q->next=NULL;
+		r->next=q;
+	}
+   }
+   fclose(pfile);
+/*
+struct nodo *t=lista;
+while (t!=NULL)
+{
+printf ("\n%s %s\n", t->codice, t->parola);
+t=t->next;
+}
+*/
+
+}
 
 
 int main( int argc, char *argv[])
@@ -441,9 +535,13 @@ int main( int argc, char *argv[])
          printf("\nerrore partenza thread");
         exit(EXIT_FAILURE);
    }
+   statot9=0;
+   luncodicet9=0;
+   sprintf(codicet9,"");
    tastocor=0;
    tastoprec=0;
    caricamatrice();
+   caricafilet9();
    gtk_init(&argc, &argv);
    window = gtk_window_new(GTK_WINDOW_POPUP);
    gtk_window_set_title(GTK_WINDOW(window), "Prova");
