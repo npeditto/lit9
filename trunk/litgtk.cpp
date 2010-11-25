@@ -201,8 +201,7 @@ void gestionet9 (int tasto)
 	{
 		trovo=trovo+1;
 		printf("%s\n",t->parola);
-		list_item=gtk_list_item_new_with_label(t->parola);
-        dlist=g_list_append(dlist, list_item);
+		
 	}
 	t=t->next;
     }
