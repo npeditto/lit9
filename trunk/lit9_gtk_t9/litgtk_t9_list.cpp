@@ -59,10 +59,11 @@
 
 
 //remote-control's configuration (mapping)
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
-void *thtel (void *arg);		//thread
+void *thtel (void *arg);		//thread per irw
+void *thfilet9 (void *arg);             // thread per caricare il t9
 
 int matrice[8][N];
 int tastocor,tastoprec;
@@ -70,8 +71,7 @@ int indice;
 int statot9;
 char codicet9[30];
 int luncodicet9;
-
-
+int flagcaricat9;
 
 struct nodo
 {
@@ -255,7 +255,7 @@ void gestionet9 (int tasto)
 		{
 			trovo=trovo+1;
 			printf("%s\n",t->parola);
-			comodo=t;
+			if (trovo==1) comodo=t;
 			list_item=gtk_list_item_new_with_label(t->parola);
 			dlist=g_list_append(dlist, list_item);
 			gtk_widget_show(list_item);
@@ -420,10 +420,14 @@ void elabora(char *codice)
 	{
 		if (statot9==0)
         	{
-        		statot9=1;
-			comodo=lista;
-		
-                	printf("\nT9 attivo\n");
+        		if (flagcaricat9==1)
+			{
+				statot9=1;
+				comodo=lista;
+				sprintf(codicet9,"");
+				luncodicet9 = 0;
+		               	printf("\nT9 attivo\n");
+			}
         	}
 		else
 		{
@@ -553,7 +557,7 @@ void elabora(char *codice)
 void *thtel(void *arg)
 {
 
-  	printf("\nIRW in acolto\n");
+  	printf("\nIRW in ascolto\n");
 
  	int fd,i;
         char buf[128];
@@ -607,8 +611,8 @@ void *thtel(void *arg)
 }
 
 
-//Funzione che legge il file dizionazrio e riempe la lista per il T9
-void caricafilet9()
+//Funzione thread che legge il file dizionazrio e riempe la lista per il T9
+void *thfilet9 (void *arg)
 {
 	lista=NULL;
 
@@ -657,6 +661,7 @@ void caricafilet9()
    	}//close while
 
    	fclose(pfile);
+	flagcaricat9=1;
 
 
 }
@@ -666,15 +671,26 @@ void caricafilet9()
 
 int main( int argc, char *argv[])
 {
+	//Lanciamo il thread per il t9
+	int rest;
+	pthread_t t9_thread;
+        flagcaricat9=0;
+	rest = pthread_create(&t9_thread, NULL, thfilet9, NULL);
+	if (rest != 0) 
+	{
+		printf("\nerrore partenza thread del T9");
+		exit(EXIT_FAILURE);
+	}
 	//Lanciamo il thread di IRW
 	int res;
 	pthread_t tel_thread;
 	res = pthread_create(&tel_thread, NULL, thtel, NULL);
 	if (res != 0) 
 	{
-		printf("\nerrore partenza thread");
+		printf("\nerrore partenza thread di gestione irda");
 		exit(EXIT_FAILURE);
 	}
+
 
 	statot9=0;
 	luncodicet9=0;
@@ -684,9 +700,6 @@ int main( int argc, char *argv[])
 
 	//carichiamo la mappatura dei tasti
 	caricamatrice();
-
-	//carichiamo il dizionario
-	caricafilet9();
 
 	//inizializiamo l'interfaccia GTK
 	gtk_init(&argc, &argv);
