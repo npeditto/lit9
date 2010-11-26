@@ -29,15 +29,11 @@
         Based on 
                 - LIRC code http://www.lirc.org/
 
-                - Predictive text technology (T9)  
-                        copyright  (C) 2000 by Markku Korsumäki  
-                        email: markku.t.korsumaki@mbnet.fi
-                
 ****************************************************************************************************************************/
 
 
 //To compile  
-//g++ litgtk_t9.cpp -o litgtk_t9 -lX11 -lpthread `pkg-config --cflags --libs gtk+-2.0`
+//g++ litgtk_t9_list.cpp -o litgtk_t9_list -lX11 -lpthread `pkg-config --cflags --libs gtk+-2.0`
 
 #include <gtk/gtk.h>
 #ifdef HAVE_CONFIG_H
@@ -62,86 +58,8 @@
 #define N 5
 
 
-
-
-//-----------------------------T9--------------------------------------
-using namespace std;
-
-#include <new>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <cstdio>
-#include <iostream>
-#include <cstdlib>
-
-#include <sstream>
-
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
-
-#define WORD_LEN 40 	// max word length, used when reading word with fscanf
-#define ESC 27
-#define DEFAULT_LIBRARY "word_list.txt"
-//#define DEFAULT_LIBRARY "dizionario_ita.txt"
-
-
-
-
-//---INIZIO FUNZIONI T9---------------------------------------------------------------
-
-typedef struct {
-    string key;
-    string word;
-} word_struct_t;
-
-
-	int words_in_lib;
-	string key_str;
-	FILE *lib;
-	string lib_filename;
-	word_struct_t word;
-
-vector<word_struct_t> word_list;
-
-
-// count how many times we iterate in loop
-int total_counter=0;
-int counter=0;
-
-
-int find_next_word(const string &str, const int start=0)
-{
-    int tmp = start;
-    counter = 0;
-    vector<word_struct_t>::iterator word_iter;
-    word_iter = word_list.begin() + start;
-    for (; word_iter != word_list.end(); ++word_iter, ++tmp, ++counter, ++total_counter)
-    {
-        if (word_iter->key.substr(0,str.length()) == str)
-            return tmp; //se trova una corrispondenza ritorna tmp
-    }
-        
-    return -1;	// ritorna -1 se non trova la parola
-}
-
-
-
-void print_word(const string &str, const int i)
-{
-
-	printf( "\nParola: %s" , word_list[i].word.substr(0, str.length()).c_str() );
-
-}
-
-
-
-
-//-------------------------------------------------------------------
-
-
-
-
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
 
 int matrice[8][N];
@@ -158,9 +76,10 @@ struct nodo
         struct nodo *next;
 };
 char codicet9[30];
+struct nodo *lista;
 int luncodicet9;
   GtkWidget *window;
-  GtkWidget *fix;
+  GtkWidget *fixed;
   GtkWidget       *vbox;
   GtkWidget       *gtklist;
   gchar           buffer[64];
@@ -272,131 +191,29 @@ void tappa()
   
 XCloseDisplay(display);
 }
-
-
 void gestionet9 (int tasto)
 {
    sprintf(codicet9,"%s%d",codicet9,tasto);
    printf("\nTasti premuti: %s\n",codicet9);
    luncodicet9=luncodicet9+1;
-
-
-	int i, key=tasto;
-
-
-	i=0;
-
-    try{
-
-
-/*
-		switch (key)
-		{
-
-			case '0': //space
-			    i = 0;
-			    total_counter = 0;
-			    key_str = "";
-		    	continue;
-
-
-			case 13:  // enter, search next word...
-			{
-			    string tmp_str;
-			    bool stop_the_loop = false;
-			    tmp_str = word_list[i].word.substr(0, key_str.length());
-			    do
-			    {
-				i = find_next_word(key_str, i+1);
-				if (i == -1)
-				{
-				    i = find_next_word(key_str, 0);
-				    stop_the_loop = true;
-				}
-			    }
-			    while (tmp_str == word_list[i].word.substr(0, key_str.length()) and !stop_the_loop);
-			}
-			print_word(key_str,i);
-			continue;
-			    
-
-			case 127: // Backspace-Clear
-			    i=0;
-			    if (key_str.length() >= 1)
-			    {
-				key_str.erase(key_str.length()-1, 1);
-
-			    }
-			    else
-				continue;
-		    	break;
-*/
-
-
-
-	//Fase di ricerca delle parole-------------------------------------------------------------------
-		if (key != 127){
-
-			std::string key2;
-			std::stringstream out;
-			out << key;
-			key2 = out.str();
-
-			key_str = key_str + key2;
-
-			//key_str += key;
-
-		}
-
-		i = find_next_word(key_str, i);
-
-
-		if (i != -1){
-
-
-
-			print_word(key_str,i);
-			//printf( "indice: %d - parola: %s", i , word_list[i].word.substr(0, key_str.length()).c_str() );
+   struct nodo *t=lista;
+   int trovo=0;
+   GtkWidget       *list_item;
+    GList           *dlist;
+   dlist = (GList*)malloc(sizeof(GList));
+   while (t!=NULL && trovo <5)
+   {
+	if (strncmp(codicet9, t->codice, luncodicet9)==0)
+	{
+		trovo=trovo+1;
+		printf("%s\n",t->parola);
 		
-		}
-		else
-		{
-			printf("\nParola non trovata\n");
-			key_str.erase(key_str.length()-1, 1);
-			i = 0;
-			print_word(key_str,i);
-		}
-	//------------------------------------------------------------------------------------
-
-
-
-
-
-	
-	
-	printf("\n");
-
-    }//chiusura try
-
-
-    catch (const bad_alloc& x) { cout << "Out of memory: " << x.what() << endl; }
-    catch (const out_of_range& x) { cout << "Out of range: " << x.what() << endl; }
-    catch (const exception& x) { cout << "Exception: " << x.what() << endl; }
-    catch (...) { cout << "Unknown error." << endl; }
-
-
-
-
-
-
-
-
-
-
+	}
+	t=t->next;
+    }
+     
 
 }
-
-
 void caricalist (int tasto, Display* display)
 {
 if (statot9==1) gestionet9(tasto);
@@ -611,7 +428,6 @@ else {
 XCloseDisplay(display);
 }
 
-
 void *thtel(void *arg)
 {
 
@@ -661,66 +477,61 @@ void *thtel(void *arg)
 }
 
 
+void caricafilet9()
+{
+   lista=NULL;
 
+   struct nodo *p = (struct nodo *)malloc(sizeof(struct nodo));
+   FILE *pfile;
+   pfile = fopen ("parole.txt","r");
+   if (pfile ==NULL) {
+         printf("\nerrore file dizionario\n\n");
+        exit(EXIT_FAILURE);
+   }
+   while(1)
+   {
+        if (fscanf(pfile,"%s %s", p->codice, p->parola)==EOF) break;
+//	printf ("\n%s %s\n", p->codice, p->parola);
+
+
+	if (lista ==NULL)
+        {
+		lista = (struct nodo *)malloc(sizeof(struct nodo));
+		sprintf (lista->parola,"%s",p->parola);
+		sprintf(lista->codice,"%s",p->codice);
+		lista->next=NULL;
+        }
+        else
+	{
+		struct nodo *r = lista;
+		struct nodo *q = lista;
+		while (q!=NULL)
+		{
+			r=q;
+			q=q->next;
+		} 
+		q= (struct nodo *)malloc(sizeof(struct nodo));
+		sprintf (q->parola,"%s",p->parola);
+		sprintf(q->codice,"%s",p->codice);
+		q->next=NULL;
+		r->next=q;
+	}
+   }
+   fclose(pfile);
+/*
+struct nodo *t=lista;
+while (t!=NULL)
+{
+printf ("\n%s %s\n", t->codice, t->parola);
+t=t->next;
+}
+*/
+
+}
 
 
 int main( int argc, char *argv[])
 {
-
-
-
-//ACQUISISCO LE PAROLE DAL DIZIONARIO------------------------------------------- 
-
-
-	int y=0;
-
-
-
-
-	if (argc<2)
-		lib_filename = DEFAULT_LIBRARY;
-	else
-		lib_filename = argv[1];
-
-	lib = fopen( lib_filename.c_str(), "r" );
-
-	if (NULL == lib) {
-
-		cerr << "Cannot open input file: " << lib_filename << endl;
-		exit(-1);
-	}
-
-	if (!fscanf(lib, "%d words\n", &words_in_lib))
-	{
-
-		cerr << "File error in reading file" << endl;
-		exit(-1);
-	}
-    
-	printf("%d words in library\n", words_in_lib);
-    
-        // Read words from lib
-	for (y=0; y<words_in_lib; y++)
-	{
-		char read_key[WORD_LEN+1], read_word[WORD_LEN+1];
-
-		if (!fscanf(lib, "%s %s\n", read_key , read_word ))
-		{
-		    cerr << "File error in reading words" << endl;
-		    exit(-1);
-		}
-
-		word.key = read_key;
-		word.word = read_word;
-		word_list.push_back(word);
-
-	}
-	fclose(lib);
-//---------------------------------------------------------------------
-
-
-
-
   int res;
   pthread_t tel_thread;
   res = pthread_create(&tel_thread, NULL, thtel, NULL);
@@ -734,13 +545,14 @@ int main( int argc, char *argv[])
    tastocor=0;
    tastoprec=0;
    caricamatrice();
+   caricafilet9();
    gtk_init(&argc, &argv);
    window = gtk_window_new(GTK_WINDOW_POPUP);
    gtk_window_set_title(GTK_WINDOW(window), "Prova");
    gtk_window_set_default_size(GTK_WINDOW(window), 105, 105);
    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_NONE);
-   fix = gtk_fixed_new();
-   gtk_container_add(GTK_CONTAINER(window), fix);
+   fixed = gtk_fixed_new();
+   gtk_container_add(GTK_CONTAINER(window), fixed);
    gtklist=gtk_list_new();
    gtk_list_set_selection_mode((GtkList *) gtklist, GTK_SELECTION_SINGLE);    
    gtk_container_add(GTK_CONTAINER(window), gtklist);
@@ -762,7 +574,7 @@ int main( int argc, char *argv[])
     }
    indice=0;  
    gtk_list_select_item((GtkList *) gtklist,indice);
-   gtk_fixed_put(GTK_FIXED(fix), gtklist, 0, 0);
+   gtk_fixed_put(GTK_FIXED(fixed), gtklist, 0, 0);
    gtk_widget_set_size_request(gtklist, 100,100);
  g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
