@@ -61,22 +61,29 @@
 //#include "pulsanti.h"
 #include "pulsanti_davide.h"
 
+void *thtel (void *arg);
 
 int matrice[8][N];
 int tastocor,tastoprec;
 int indice;
 gchar *sel;
 const   gchar   *list_item_data_key="list_item_data";
-void *thtel (void *arg);
+
 int statot9;
+
+
+
 struct nodo
 {
 	char parola[30];
         char codice[30];
         struct nodo *next;
 };
+
 char codicet9[30];
 struct nodo *lista;
+struct nodo *comodo;
+
 int luncodicet9;
   GtkWidget *window;
   GtkWidget *fixed;
@@ -193,25 +200,57 @@ XCloseDisplay(display);
 }
 void gestionet9 (int tasto)
 {
+
+
    sprintf(codicet9,"%s%d",codicet9,tasto);
    printf("\nTasti premuti: %s\n",codicet9);
    luncodicet9=luncodicet9+1;
-   struct nodo *t=lista;
+   struct nodo *t=comodo;
    int trovo=0;
-   GtkWidget       *list_item;
-    GList           *dlist;
-   dlist = (GList*)malloc(sizeof(GList));
-   while (t!=NULL && trovo <5)
-   {
-	if (strncmp(codicet9, t->codice, luncodicet9)==0)
+   
+	GtkWidget       *list_item;
+	GList           *dlist;
+	guint           i;
+	gchar           buffer[64];
+	gtk_list_clear_items ((GtkList *) gtklist,0,N);
+
+	dlist=NULL;
+	gchar  *str;
+
+	str = (gchar*)malloc(sizeof(gchar));
+	sprintf(str,"");
+
+
+
+	while (t!=NULL && trovo <5)
 	{
-		trovo=trovo+1;
-		printf("%s\n",t->parola);
-		
+		if (strncmp(codicet9, t->codice, luncodicet9)==0)
+		{
+			trovo=trovo+1;
+			printf("%s\n",t->parola);
+			comodo=t;
+			list_item=gtk_list_item_new_with_label(t->parola);
+			dlist=g_list_append(dlist, list_item);
+			gtk_widget_show(list_item);
+			gtk_object_set_data(GTK_OBJECT(list_item), list_item_data_key,str);
+	
+		}
+		t=t->next;
 	}
-	t=t->next;
-    }
      
+
+	if(trovo > 0)
+	{
+		Display *display = XOpenDisplay(0);
+		gtk_list_append_items((GtkList*)(gtklist), dlist);
+		indice=0;
+		gtk_list_select_item((GtkList *) gtklist,indice);
+		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
+		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
+		gdk_window_process_all_updates ();
+		XCloseDisplay(display);
+
+	}
 
 }
 void caricalist (int tasto, Display* display)
@@ -230,9 +269,10 @@ else
 
     dlist=NULL;
     gchar  *str;
-str = (gchar*)malloc(sizeof(gchar));
-sprintf(str,"");
-tastocor=tasto;
+
+	str = (gchar*)malloc(sizeof(gchar));
+	sprintf(str,"");
+	tastocor=tasto;
     
     for (i=0; i<N; i++) {
     if (tasto ==2)
@@ -331,6 +371,8 @@ sprintf(str,"");
 	if (statot9==0)
         {
         	statot9=1;
+		comodo=lista;
+		
                 printf("\nT9 attivo\n");
         }
         else
@@ -403,6 +445,7 @@ else {
    int tasto=XK_A;
    sprintf(codicet9,"");
    luncodicet9=0;
+	comodo=lista;
    if (strcmp(codice, red)==0) tasto=XK_Tab;
    else if (strcmp(codice, green)==0) tasto =XK_Return;
    else if (strcmp(codice, vol_plus)==0) tasto=XK_Up;
@@ -483,7 +526,8 @@ void caricafilet9()
 
    struct nodo *p = (struct nodo *)malloc(sizeof(struct nodo));
    FILE *pfile;
-   pfile = fopen ("parole.txt","r");
+   //pfile = fopen ("parole.txt","r");
+pfile = fopen ("dizionario_ita.txt","r");
    if (pfile ==NULL) {
          printf("\nerrore file dizionario\n\n");
         exit(EXIT_FAILURE);
