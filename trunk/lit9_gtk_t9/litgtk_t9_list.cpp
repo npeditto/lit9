@@ -93,7 +93,6 @@ GtkWidget *vbox;
 GtkWidget *gtklist;
 GtkWidget *list_item;
 gchar buffer[64];
-gchar *sel;
 const gchar *list_item_data_key="list_item_data";
 
 
@@ -195,33 +194,36 @@ void caricamatrice ()
 //Funzione per l'inserimento manuale delle lettere selezionate nella listbox in una textbox selezionata
 void tappa()
 {
-	if (tastocor==0) 
-		return;
+	if (statot9==0)
+	{
+		if (tastocor==0) 
+			return;
 
-        int tasto=matrice[tastocor-2][indice];
+		int tasto=matrice[tastocor-2][indice];
 
- 	Display *display = XOpenDisplay(0);
+	 	Display *display = XOpenDisplay(0);
 
-   	if(display == NULL)
-      		return;
+	   	if(display == NULL)
+	      		return;
 
-     	Window winRoot = XDefaultRootWindow(display);
+	     	Window winRoot = XDefaultRootWindow(display);
 
-	// Find the window which has the current keyboard focus.
-	Window winFocus;
-	int revert;
-	XGetInputFocus(display, &winFocus, &revert);
-	 
-	// Send a fake key press event to the window.
-	XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, tasto, 0);
-	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+		// Find the window which has the current keyboard focus.
+		Window winFocus;
+		int revert;
+		XGetInputFocus(display, &winFocus, &revert);
+		 
+		// Send a fake key press event to the window.
+		XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, tasto, 0);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 
-	// Send a fake key release event to the window.
-	event = createKeyEvent(display, winFocus, winRoot, false, tasto, 0);
-	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+		// Send a fake key release event to the window.
+		event = createKeyEvent(display, winFocus, winRoot, false, tasto, 0);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 
-  
-	XCloseDisplay(display);
+	  
+		XCloseDisplay(display);
+	}
 
 }
 
