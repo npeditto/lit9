@@ -59,8 +59,8 @@
 
 
 //remote-control's configuration (mapping)
-//#include "pulsanti.h"
-#include "pulsanti_davide.h"
+#include "pulsanti.h"
+//#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -72,6 +72,8 @@ int statot9;
 char codicet9[30];
 int luncodicet9;
 int flagcaricat9;
+
+gchar* parole[N];
 
 struct nodo
 {
@@ -191,11 +193,55 @@ void caricamatrice ()
 }
 
 
+
+//Funzione per il trasferimento di un'intera parola dalla listbox alla texbox di destinazione
+void parola_t9 ()
+{
+
+	//printf("parola_listbox: %s", parole[indice+1]);
+
+	int dim_parola = strlen(parole[indice+1]);
+
+	Display *display = XOpenDisplay(0);
+	Window winRoot = XDefaultRootWindow(display);
+	Window winFocus;
+	int revert;
+	XGetInputFocus(display, &winFocus, &revert);
+
+	for (int kk=0; kk < dim_parola; kk++) 
+	{
+
+		gchar word[dim_parola];
+		sprintf(word,"%s",parole[indice+1]);	
+
+		gchar  *let;
+		let = (gchar*)malloc(sizeof(gchar));
+		sprintf(let,"");
+
+		sprintf(let,"%c",word[kk]);
+		//printf("%s", let);
+
+
+	   	XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, XStringToKeysym(let), 0);	
+	   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+
+	   	event = createKeyEvent(display, winFocus, winRoot, false, XStringToKeysym(let), 0);
+	   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+/**/
+	}printf("\n");
+
+	XCloseDisplay(display);		  	
+
+
+}
+
+
+
+
 //Funzione per l'inserimento manuale delle lettere selezionate nella listbox in una textbox selezionata
 void tappa()
 {
-	if (statot9==0)
-	{
+
 		if (tastocor==0) 
 			return;
 
@@ -223,7 +269,6 @@ void tappa()
 
 	  
 		XCloseDisplay(display);
-	}
 
 }
 
@@ -257,6 +302,9 @@ void gestionet9 (int tasto)
 		{
 			trovo=trovo+1;
 			printf("%s\n",t->parola);
+
+			parole[trovo]=t->parola;  //riempo l'array parole con quelle della listbox
+
 			if (trovo==1) comodo=t;
 			list_item=gtk_list_item_new_with_label(t->parola);
 			dlist=g_list_append(dlist, list_item);
@@ -511,8 +559,11 @@ void elabora(char *codice)
 	else if (strcmp(codice, tasto_9)==0) caricalist(9,display);
 
 	//La pressione di tale tasto manderà nella textbox selezionata il carattere selezionato nella listbox
-	else if (strcmp(codice, tasto_exit)==0) tappa();
-   
+	else if (strcmp(codice, tasto_exit)==0) 
+		if (statot9 == 1)
+			parola_t9();
+		else
+			tappa();
 	
 	else {
 		//Stamperà il carattere "a" qualora premessimo un tasto non mappato con nessuna funzionalità
