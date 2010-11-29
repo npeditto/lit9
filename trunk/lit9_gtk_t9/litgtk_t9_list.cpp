@@ -777,7 +777,8 @@ int main( int argc, char *argv[])
 	//inizializiamo l'interfaccia GTK
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_POPUP);
-	gtk_window_set_title(GTK_WINDOW(window), "Prova");
+		//window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		//gtk_window_set_title(GTK_WINDOW(window), "LIT9");
 	gtk_window_set_default_size(GTK_WINDOW(window), 105, 105);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_NONE);
 	//fixed = gtk_fixed_new();
