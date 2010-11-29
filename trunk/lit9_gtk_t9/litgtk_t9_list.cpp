@@ -54,6 +54,8 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <pthread.h>
+
+
 #define KEYCODE XK_A
 #define N 5
 
@@ -97,6 +99,7 @@ const gchar *list_item_data_key="list_item_data";
 
 GtkWidget *vbox;
 GtkWidget *mylabel;
+GtkWidget *mylabel2;
 
 
 
@@ -286,7 +289,7 @@ struct nodo *trova (struct nodo *head)
 	printf ("\nInizio ricerca da: %s",tmp->parola);
 	while (tmp!=NULL)
 	{
-		if (strncmp(codicet9, tmp->codice, luncodicet9)==0) return tmp;
+		if (strncmp(codicet9,tmp->codice, luncodicet9)==0) return tmp;
 		tmp=tmp->next;
 	}
 	return tmp;
@@ -313,7 +316,7 @@ void gestionet9 (int tasto)
 	str = (gchar*)malloc(sizeof(gchar));
 	sprintf(str,"");
 
-        printf("\ntesta parz: %s\ntesta vera:%s\n", t->parola,lista->parola);
+        //printf("\ntesta parz: %s\ntesta vera:%s\n", t->parola,lista->parola);
 	struct nodo *tmp =t;
 	while (tmp!=NULL && i<5)
         {
@@ -488,16 +491,32 @@ void elabora(char *codice)
         	{
         		if (flagcaricat9==1)
 			{
+
 				statot9=1;
 				bzero(codicet9,30);
 				luncodicet9 = 0;
 		               	printf("\nT9 attivo\n");
+
+				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+				mylabel2 = gtk_label_new (NULL);
+				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
+				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+				gtk_widget_show (mylabel2);
+
 			}
         	}
 		else
 		{
                 	statot9=0;
                 	printf("\nT9 disattivato");
+
+			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+			mylabel2 = gtk_label_new (NULL);
+			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+			gtk_widget_show (mylabel2);
+
+
          	}
    	}
 
@@ -676,7 +695,7 @@ void *thtel(void *arg)
                         k=k+1;
 
                 }
-                printf("\nCodice:\t%s\nStringa restituita dal driver: \t%s\n",cod,buf);
+                //printf("\nCodice:\t%s\nStringa restituita dal driver: \t%s\n",cod,buf);
                 elabora(cod);
 
         }
@@ -736,7 +755,7 @@ void *thfilet9 (void *arg)
    	fclose(pfile);
 	flagcaricat9=1;
 	printf("\nCaricamento dizionario completato \n");
-	printf("\nTesta lista %s\n", lista->parola);
+	//printf("\nTesta lista %s\n", lista->parola);
 
 
 }
@@ -777,8 +796,7 @@ int main( int argc, char *argv[])
 	//inizializiamo l'interfaccia GTK
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_POPUP);
-		//window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		//gtk_window_set_title(GTK_WINDOW(window), "LIT9");
+	gtk_window_set_title(GTK_WINDOW(window), "Prova");
 	gtk_window_set_default_size(GTK_WINDOW(window), 105, 105);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_NONE);
 	//fixed = gtk_fixed_new();
