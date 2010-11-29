@@ -16,9 +16,3 @@ clean:
 	rm -f *.o
 	rm -f $(PROGS)
 
-#dep             :
-#        rm -f .depend
-#        make .depend
-
-# DO NOT DELETE
-
