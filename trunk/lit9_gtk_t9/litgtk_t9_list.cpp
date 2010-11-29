@@ -59,8 +59,8 @@
 
 
 //remote-control's configuration (mapping)
-//#include "pulsanti.h"
-#include "pulsanti_davide.h"
+#include "pulsanti.h"
+//#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -90,11 +90,14 @@ struct nodo *comodo;
 
 GtkWidget *window;
 GtkWidget *fixed;
-GtkWidget *vbox;
 GtkWidget *gtklist;
 GtkWidget *list_item;
 gchar buffer[64];
 const gchar *list_item_data_key="list_item_data";
+
+GtkWidget *vbox;
+GtkWidget *mylabel;
+
 
 
 
@@ -777,12 +780,33 @@ int main( int argc, char *argv[])
 	gtk_window_set_title(GTK_WINDOW(window), "Prova");
 	gtk_window_set_default_size(GTK_WINDOW(window), 105, 105);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_NONE);
-	fixed = gtk_fixed_new();
-	gtk_container_add(GTK_CONTAINER(window), fixed);
+	//fixed = gtk_fixed_new();
+	//gtk_container_add(GTK_CONTAINER(window), fixed);
+
+	gtk_signal_connect(GTK_OBJECT(window),"destroy",GTK_SIGNAL_FUNC(gtk_main_quit),NULL);
+
+/*
 	gtklist=gtk_list_new();
 	gtk_list_set_selection_mode((GtkList *) gtklist, GTK_SELECTION_SINGLE);    
 	gtk_container_add(GTK_CONTAINER(window), gtklist);
 	gtk_widget_show(gtklist);
+*/
+
+	vbox=gtk_vbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_container_add(GTK_CONTAINER(window), vbox);
+	gtk_widget_show(vbox);
+
+	gtklist=gtk_list_new();
+	gtk_list_set_selection_mode((GtkList *) gtklist, GTK_SELECTION_SINGLE);    
+	gtk_container_add(GTK_CONTAINER(vbox), gtklist);
+	gtk_widget_show(gtklist);
+
+	mylabel = gtk_label_new ("Benvenuto su lit9!");
+	gtk_container_add(GTK_CONTAINER(vbox), mylabel);
+	gtk_widget_show (mylabel);
+
+
 
 	int i=0;
 
@@ -802,8 +826,8 @@ int main( int argc, char *argv[])
 	}
 
    	indice=0;  
-   	gtk_list_select_item((GtkList *) gtklist,indice);
-   	gtk_fixed_put(GTK_FIXED(fixed), gtklist, 0, 0);
+   	//gtk_list_select_item((GtkList *) gtklist,indice);
+   	//gtk_fixed_put(GTK_FIXED(fixed), gtklist, 0, 0);
    	gtk_widget_set_size_request(gtklist, 100,100);
  	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
