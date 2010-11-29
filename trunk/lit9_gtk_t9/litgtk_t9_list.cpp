@@ -59,8 +59,8 @@
 
 
 //remote-control's configuration (mapping)
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -81,7 +81,6 @@ struct nodo
         char codice[30];
         struct nodo *next;
 };
-
 
 struct nodo *lista;
 struct nodo *comodo;
@@ -198,9 +197,10 @@ void caricamatrice ()
 void parola_t9 ()
 {
 
-	//printf("parola_listbox: %s", parole[indice+1]);
-
-	int dim_parola = strlen(parole[indice+1]);
+	if (luncodicet9==0) return;
+	luncodicet9 = 0;
+	bzero(codicet9,30);
+	int dim_parola = strlen(parole[indice]);
 
 	Display *display = XOpenDisplay(0);
 	Window winRoot = XDefaultRootWindow(display);
@@ -212,7 +212,7 @@ void parola_t9 ()
 	{
 
 		gchar word[dim_parola];
-		sprintf(word,"%s",parole[indice+1]);	
+		sprintf(word,"%s",parole[indice]);	
 
 		gchar  *let;
 		let = (gchar*)malloc(sizeof(gchar));
@@ -230,8 +230,12 @@ void parola_t9 ()
 /**/
 	}printf("\n");
 
-	XCloseDisplay(display);		  	
-
+	
+	gtk_list_clear_items ((GtkList *) gtklist,0,N);
+		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
+		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 1);
+		gdk_window_process_all_updates ();
+	XCloseDisplay(display);	
 
 }
 
@@ -271,53 +275,61 @@ void tappa()
 		XCloseDisplay(display);
 
 }
-
+//funzione che ritorna il puntatore alla prima parola del t9 da proporre
+struct nodo *trova (struct nodo *head)
+{
+	struct nodo *tmp;
+	tmp=head;
+	printf ("\nInizio ricerca da: %s",tmp->parola);
+	while (tmp!=NULL)
+	{
+		if (strncmp(codicet9, tmp->codice, luncodicet9)==0) return tmp;
+		tmp=tmp->next;
+	}
+	return tmp;
+}
 
 //Algoritmo T9 di predizione del testo basato su liste
 void gestionet9 (int tasto)
 {
-
-
-	sprintf(codicet9,"%s%d",codicet9,tasto);
-	printf("\nTasti premuti: %s\n",codicet9);
+	gtk_list_clear_items ((GtkList *) gtklist,0,N);
 	luncodicet9=luncodicet9+1;
-	struct nodo *t=comodo;			//lista di reinizializzazione
-	int trovo=0;
+	sprintf(codicet9,"%s%d",codicet9,tasto);
+	printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
+	// decidiamo se  cercare dall'inizio o no
+	struct nodo *t;
+	if (luncodicet9==1) t=trova(lista);
+	else t=trova(comodo);
+	comodo =t;
+	if (t==NULL) return;
+	int i=0;
    
 	GtkWidget       *list_item;
-	GList           *dlist;
-	guint           i;
-	gchar           buffer[64];
-	gtk_list_clear_items ((GtkList *) gtklist,0,N);
-	dlist=NULL;
+	GList           *dlist=NULL;
 	gchar  *str;
 	str = (gchar*)malloc(sizeof(gchar));
 	sprintf(str,"");
 
-
-
-	while (t!=NULL && trovo <5)
-	{
-		if (strncmp(codicet9, t->codice, luncodicet9)==0)
-		{
-			trovo=trovo+1;
-			printf("%s\n",t->parola);
-
-			parole[trovo]=t->parola;  //riempo l'array parole con quelle della listbox
-
-			if (trovo==1) comodo=t;
-			list_item=gtk_list_item_new_with_label(t->parola);
-			dlist=g_list_append(dlist, list_item);
-			gtk_widget_show(list_item);
-			gtk_object_set_data(GTK_OBJECT(list_item), list_item_data_key,str);
+        printf("\ntesta parz: %s\ntesta vera:%s\n", t->parola,lista->parola);
+	struct nodo *tmp =t;
+	while (tmp!=NULL && i<5)
+        {
+		printf("%s\n",tmp->parola);
+		parole[i]=tmp->parola;  //riempo l'array parole con quelle della listbox			
+		list_item=gtk_list_item_new_with_label(tmp->parola);
+		dlist=g_list_append(dlist, list_item);
+		gtk_widget_show(list_item);
+		gtk_object_set_data(GTK_OBJECT(list_item), list_item_data_key,str);
 	
-		}
-		t=t->next;
+		i=i+1;
+
+		tmp=tmp->next;
 	}
      
 
-	if(trovo > 0)
+	if(i> 0)
 	{
+		 
 		Display *display = XOpenDisplay(0);
 		gtk_list_append_items((GtkList*)(gtklist), dlist);
 		indice=0;
@@ -328,7 +340,8 @@ void gestionet9 (int tasto)
 		XCloseDisplay(display);
 
 	}
-
+		
+	
 }
 
 
@@ -473,8 +486,7 @@ void elabora(char *codice)
         		if (flagcaricat9==1)
 			{
 				statot9=1;
-				comodo=lista;
-				sprintf(codicet9,"");
+				bzero(codicet9,30);
 				luncodicet9 = 0;
 		               	printf("\nT9 attivo\n");
 			}
@@ -568,18 +580,23 @@ void elabora(char *codice)
 	else {
 		//Stamperà il carattere "a" qualora premessimo un tasto non mappato con nessuna funzionalità
 		int tasto = XK_A;
-		sprintf(codicet9,"");
-		luncodicet9 = 0;
-		comodo = lista;
 
+		if (statot9==1)
+		{
+			bzero(codicet9,30);
+			luncodicet9 = 0;
+
+		}
 		//tasti di navigazione web: Tab, Invio, 
 		// Vol+ e Vol- per lo scorrimento di elenchi,
    		if (strcmp(codice, red)==0) tasto=XK_Tab;
    		else if (strcmp(codice, green)==0) tasto =XK_Return;
    		else if (strcmp(codice, vol_plus)==0) tasto=XK_Up;
    		else if (strcmp(codice, vol_minus)==0) tasto =XK_Down;
+		//punto
+   		else if (strcmp(codice, tasto_1)==0) tasto = XK_period;
 
-		//Tastp spazio
+		//Tasto spazio
    		else if (strcmp(codice, tasto_0)==0) tasto = XK_space;
 
 		// Get the root window for the current display.
@@ -688,6 +705,7 @@ void *thfilet9 (void *arg)
 		if (lista ==NULL)
         	{
 			lista = (struct nodo *)malloc(sizeof(struct nodo));
+			comodo =(struct nodo *)malloc(sizeof(struct nodo));
 			sprintf (lista->parola,"%s",p->parola);
 			sprintf(lista->codice,"%s",p->codice);
 			lista->next=NULL;
@@ -712,9 +730,10 @@ void *thfilet9 (void *arg)
 		}
 
    	}//close while
-
    	fclose(pfile);
 	flagcaricat9=1;
+	printf("\nCaricamento dizionario completato \n");
+	printf("\nTesta lista %s\n", lista->parola);
 
 
 }
@@ -746,8 +765,6 @@ int main( int argc, char *argv[])
 
 
 	statot9=0;
-	luncodicet9=0;
-	sprintf(codicet9,"");
 	tastocor=0;
 	tastoprec=0;
 
