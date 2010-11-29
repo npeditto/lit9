@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -86,7 +86,7 @@ struct nodo
 
 struct nodo *lista;
 struct nodo *comodo;
-
+struct nodo *listap;
 
 //global declaration for GTK code-----------------------------------------
 
@@ -286,7 +286,7 @@ struct nodo *trova (struct nodo *head)
 {
 	struct nodo *tmp;
 	tmp=head;
-	printf ("\nInizio ricerca da: %s",tmp->parola);
+	printf ("\nInizio ricerca da: %s\n",tmp->parola);
 	while (tmp!=NULL)
 	{
 		if (strncmp(codicet9,tmp->codice, luncodicet9)==0) return tmp;
@@ -304,10 +304,19 @@ void gestionet9 (int tasto)
 	printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
 	// decidiamo se  cercare dall'inizio o no
 	struct nodo *t;
-	if (luncodicet9==1) t=trova(lista);
+	if (luncodicet9==1) 
+	{
+	     t=trova(listap);
+	     if (t==NULL) t=trova(lista);
+	}
 	else t=trova(comodo);
-	comodo =t;
-	if (t==NULL) return;
+	if (t==NULL) 
+	{
+		// forse il puntatore è alla fine del dizionario piccolo , ricerchiamo in quello globale
+		t=trova(lista);
+                if (t==NULL)  return;
+	}
+	comodo = t;
 	int i=0;
    
 	GtkWidget       *list_item;
@@ -502,6 +511,7 @@ void elabora(char *codice)
 				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
 				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 				gtk_widget_show (mylabel2);
+			
 
 			}
         	}
@@ -515,7 +525,7 @@ void elabora(char *codice)
 			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
 			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 			gtk_widget_show (mylabel2);
-
+			gdk_window_process_all_updates ();
 
          	}
    	}
@@ -707,14 +717,14 @@ void *thtel(void *arg)
 void *thfilet9 (void *arg)
 {
 	lista=NULL;
-
+	listap=NULL;
 	struct nodo *p = (struct nodo *)malloc(sizeof(struct nodo));
 	FILE *pfile;
 	//pfile = fopen ("parole.txt","r");
-	pfile = fopen ("dizionario_ita.txt","r");
+	pfile = fopen ("piccolo.txt","r");
 
    	if (pfile ==NULL) {
-        	printf("\nerrore file dizionario\n\n");
+        	printf("\nerrore file dizionario personale\n\n");
         	exit(EXIT_FAILURE);
 	}
 
@@ -724,10 +734,56 @@ void *thfilet9 (void *arg)
 		//printf ("\n%s %s\n", p->codice, p->parola);
 
 
+		if (listap ==NULL)
+        	{
+			listap = (struct nodo *)malloc(sizeof(struct nodo));
+			comodo =(struct nodo *)malloc(sizeof(struct nodo));
+			sprintf (listap->parola,"%s",p->parola);
+			sprintf(listap->codice,"%s",p->codice);
+			listap->next=NULL;
+		}
+		else
+		{
+			struct nodo *r = listap;
+			struct nodo *q = listap;
+
+			while (q!=NULL)
+			{
+				r=q;
+				q=q->next;
+			} 
+
+			q = (struct nodo *)malloc(sizeof(struct nodo));
+			sprintf (q->parola,"%s",p->parola);
+			sprintf(q->codice,"%s",p->codice);
+			q->next=NULL;
+			r->next=q;
+
+		}
+
+   	}//close while
+   	fclose(pfile);
+	flagcaricat9=1;
+	printf("\nCaricamento dizionario personale completato \n");
+	printf("\nTesta lista %s\n", listap->parola);
+	
+	FILE *pfile2;
+	pfile2 = fopen ("dizionario_ita.txt","r");
+
+   	if (pfile2 ==NULL) {
+        	printf("\nerrore file dizionario globale\n\n");
+        	exit(EXIT_FAILURE);
+	}
+
+	while(1)
+	{
+        	if (fscanf(pfile2,"%s %s", p->codice, p->parola)==EOF) break;
+		//printf ("\n%s %s\n", p->codice, p->parola);
+
+
 		if (lista ==NULL)
         	{
 			lista = (struct nodo *)malloc(sizeof(struct nodo));
-			comodo =(struct nodo *)malloc(sizeof(struct nodo));
 			sprintf (lista->parola,"%s",p->parola);
 			sprintf(lista->codice,"%s",p->codice);
 			lista->next=NULL;
@@ -752,10 +808,10 @@ void *thfilet9 (void *arg)
 		}
 
    	}//close while
-   	fclose(pfile);
-	flagcaricat9=1;
-	printf("\nCaricamento dizionario completato \n");
-	//printf("\nTesta lista %s\n", lista->parola);
+   	fclose(pfile2);
+	printf("\nCaricamento dizionario globale completato \n");
+	printf("\nTesta lista %s\n", lista->parola);
+
 
 
 }
@@ -825,7 +881,10 @@ int main( int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(vbox), mylabel);
 	gtk_widget_show (mylabel);
 
-
+	mylabel2 = gtk_label_new (NULL);
+	gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+	gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+	gtk_widget_show (mylabel2);
 
 	int i=0;
 
