@@ -2264,3 +2264,26 @@
 
 1290866953 /home/fabio/workspace/lit9s/pulsanti.h
 
+1291020778 source:/media/DATI/università/Magistrale/sistemi operativi/googlecode/lit9s/main.cpp
+	"main.h"
+
+1291020871 /media/DATI/università/Magistrale/sistemi operativi/googlecode/lit9s/main.h
+	<gtk/gtk.h>
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<fcntl.h>
+	<sys/socket.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<sys/un.h>
+	<errno.h>
+	<getopt.h>
+	<X11/Xlib.h>
+	<X11/keysym.h>
+	<pthread.h>
+	"pulsanti.h"
+
+1290866953 /media/DATI/università/Magistrale/sistemi operativi/googlecode/lit9s/pulsanti.h
+

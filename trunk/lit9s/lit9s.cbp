@@ -35,14 +35,9 @@
 		<Linker>
 			<Add option="-lpthread -lX11 `pkg-config --libs gtk+-2.0 `" />
 		</Linker>
-		<Unit filename="elabora.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="elabora.h" />
-		<Unit filename="headers.h" />
-		<Unit filename="irda.cpp" />
-		<Unit filename="irda.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
+		<Unit filename="pulsanti.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

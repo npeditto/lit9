@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="elabora.c" open="1" top="1" tabpos="2">
-		<Cursor position="442" topLine="0" />
-	</File>
-	<File name="elabora.h" open="1" top="0" tabpos="3">
-		<Cursor position="371" topLine="2" />
-	</File>
-	<File name="headers.h" open="1" top="0" tabpos="4">
-		<Cursor position="65" topLine="0" />
-	</File>
-	<File name="irda.cpp" open="1" top="0" tabpos="5">
-		<Cursor position="42" topLine="0" />
-	</File>
-	<File name="irda.h" open="1" top="0" tabpos="6">
-		<Cursor position="118" topLine="0" />
-	</File>
-	<File name="main.cpp" open="1" top="0" tabpos="1">
-		<Cursor position="3910" topLine="43" />
+	<File name="main.cpp" open="1" top="1" tabpos="0">
+		<Cursor position="17528" topLine="536" />
 	</File>
 </CodeBlocks_layout_file>
