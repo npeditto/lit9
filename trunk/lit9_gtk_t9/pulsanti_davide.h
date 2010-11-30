@@ -55,7 +55,7 @@ tasto_exit              C23D		7bf1
 #define vol_plus	"2fd58a7"
 #define vol_minus	"2fd7887"
 #define tasto_exit	"2fdc23d"
-
+#define mute 		"2fd08f7"
 
 #endif
 

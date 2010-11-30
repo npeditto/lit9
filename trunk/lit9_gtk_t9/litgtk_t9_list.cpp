@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -242,7 +242,10 @@ void parola_t9 ()
 	   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 /**/
 	}printf("\n");
-
+	XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, XK_space, 0);	
+   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+   	event = createKeyEvent(display, winFocus, winRoot, false, XK_space, 0);
+   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 	
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
 		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
@@ -517,8 +520,8 @@ void elabora(char *codice)
 		               	printf("\nT9 attivo\n");
 
 				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-				mylabel2 = gtk_label_new ("T9 attivo");
-				//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
+				mylabel2 = gtk_label_new (NULL);
+				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
 				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 				gtk_widget_show (mylabel2);
 			
@@ -531,8 +534,8 @@ void elabora(char *codice)
                 	printf("\nT9 disattivato");
 
 			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-			mylabel2 = gtk_label_new ("T9 disattivato");
-			//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+			mylabel2 = gtk_label_new (NULL);
+			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
 			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 			gtk_widget_show (mylabel2);
 			gdk_window_process_all_updates ();
@@ -640,6 +643,8 @@ void elabora(char *codice)
 
 		//Tasto spazio
    		else if (strcmp(codice, tasto_0)==0) tasto = XK_space;
+		//Tasto per cancellare
+   		else if (strcmp(codice, mute)==0) tasto = XK_BackSpace;
 
 		// Get the root window for the current display.
 		Window winRoot = XDefaultRootWindow(display);
@@ -775,7 +780,7 @@ void *thfilet9 (void *arg)
    	fclose(pfile);
 	flagcaricat9=1;
 	printf("\nCaricamento dizionario personale completato \n");
-	//printf("\nTesta lista %s\n", listap->parola);
+//	printf("\nTesta lista %s\n", listap->parola);
 	
 	FILE *pfile2;
 	pfile2 = fopen ("dizionario_ita.txt","r");
@@ -820,7 +825,7 @@ void *thfilet9 (void *arg)
    	}//close while
    	fclose(pfile2);
 	printf("\nCaricamento dizionario globale completato \n");
-	//printf("\nTesta lista %s\n", lista->parola);
+//	printf("\nTesta lista %s\n", lista->parola);
 
 
 
@@ -891,8 +896,8 @@ int main( int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(vbox), mylabel);
 	gtk_widget_show (mylabel);
 
-	mylabel2 = gtk_label_new ("T9 disattivato");
-	//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+	mylabel2 = gtk_label_new (NULL);
+	gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
 	gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 	gtk_widget_show (mylabel2);
 
