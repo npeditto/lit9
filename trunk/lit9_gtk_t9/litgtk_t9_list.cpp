@@ -76,6 +76,7 @@ int luncodicet9;
 int flagcaricat9;
 
 gchar* parole[N];
+int numparoletrovate;	//numero parole trovate dalla predizione del t9
 
 struct nodo
 {
@@ -134,10 +135,16 @@ XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool pr
 //Funzine per lo scorrimento circolare della listbox
 void scorri ()
 {
-	if (indice==(N-1)) 
-		indice=0;
-	else 
-		indice = indice+1;
+	if (statot9==1 && numparoletrovate>0)
+	{
+		if (indice==numparoletrovate-1) indice=0;
+		else indice=indice+1;
+	}
+	else if (statot9==0)
+	{
+		if (indice==(N-1)) indice=0;
+		else indice = indice+1;
+	}
 
 	gtk_list_select_item((GtkList *) gtklist,indice);
 	gdk_window_process_all_updates ();
@@ -298,6 +305,7 @@ struct nodo *trova (struct nodo *head)
 //Algoritmo T9 di predizione del testo basato su liste
 void gestionet9 (int tasto)
 {
+	numparoletrovate=0;
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
 	luncodicet9=luncodicet9+1;
 	sprintf(codicet9,"%s%d",codicet9,tasto);
@@ -329,25 +337,27 @@ void gestionet9 (int tasto)
 	struct nodo *tmp =t;
 	while (tmp!=NULL && i<5)
         {
-		printf("%s\n",tmp->parola);
-		parole[i]=tmp->parola;  //riempo l'array parole con quelle della listbox			
-		list_item=gtk_list_item_new_with_label(tmp->parola);
-		dlist=g_list_append(dlist, list_item);
-		gtk_widget_show(list_item);
-		gtk_object_set_data(GTK_OBJECT(list_item), list_item_data_key,str);
-	
-		i=i+1;
+		if (strncmp(codicet9,tmp->codice, luncodicet9)==0) 
+		{
+			printf("%s\n",tmp->parola);
+			parole[i]=tmp->parola;  //si carica l'array parole con quelle della listbox			
+			list_item=gtk_list_item_new_with_label(tmp->parola);
+			dlist=g_list_append(dlist, list_item);
+			gtk_widget_show(list_item);
+			gtk_object_set_data(GTK_OBJECT(list_item), list_item_data_key,str);
+			i=i+1;
+		}
 
 		tmp=tmp->next;
 	}
      
-
+	numparoletrovate=i;
+	indice=0;
 	if(i> 0)
 	{
 		 
 		Display *display = XOpenDisplay(0);
 		gtk_list_append_items((GtkList*)(gtklist), dlist);
-		indice=0;
 		gtk_list_select_item((GtkList *) gtklist,indice);
 		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
 		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
