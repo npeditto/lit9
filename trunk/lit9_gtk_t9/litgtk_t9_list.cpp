@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-//#include "pulsanti.h"
-#include "pulsanti_davide.h"
+#include "pulsanti.h"
+//#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -517,8 +517,8 @@ void elabora(char *codice)
 		               	printf("\nT9 attivo\n");
 
 				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-				mylabel2 = gtk_label_new (NULL);
-				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
+				mylabel2 = gtk_label_new ("T9 attivo");
+				//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
 				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 				gtk_widget_show (mylabel2);
 			
@@ -531,8 +531,8 @@ void elabora(char *codice)
                 	printf("\nT9 disattivato");
 
 			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-			mylabel2 = gtk_label_new (NULL);
-			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+			mylabel2 = gtk_label_new ("T9 disattivato");
+			//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
 			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 			gtk_widget_show (mylabel2);
 			gdk_window_process_all_updates ();
@@ -775,7 +775,7 @@ void *thfilet9 (void *arg)
    	fclose(pfile);
 	flagcaricat9=1;
 	printf("\nCaricamento dizionario personale completato \n");
-	printf("\nTesta lista %s\n", listap->parola);
+	//printf("\nTesta lista %s\n", listap->parola);
 	
 	FILE *pfile2;
 	pfile2 = fopen ("dizionario_ita.txt","r");
@@ -820,7 +820,7 @@ void *thfilet9 (void *arg)
    	}//close while
    	fclose(pfile2);
 	printf("\nCaricamento dizionario globale completato \n");
-	printf("\nTesta lista %s\n", lista->parola);
+	//printf("\nTesta lista %s\n", lista->parola);
 
 
 
