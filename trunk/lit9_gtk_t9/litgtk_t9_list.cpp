@@ -891,8 +891,8 @@ int main( int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(vbox), mylabel);
 	gtk_widget_show (mylabel);
 
-	mylabel2 = gtk_label_new (NULL);
-	gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
+	mylabel2 = gtk_label_new ("T9 disattivato");
+	//gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
 	gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 	gtk_widget_show (mylabel2);
 
