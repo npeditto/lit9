@@ -644,7 +644,7 @@ void elabora(char *codice)
 		//Tasto spazio
    		else if (strcmp(codice, tasto_0)==0) tasto = XK_space;
 		//Tasto per cancellare
-   		else if (strcmp(codice, mute)==0) tasto = XK_BackSpace;
+   		else if (strcmp(codice, mute_clear)==0) tasto = XK_BackSpace;
 
 		// Get the root window for the current display.
 		Window winRoot = XDefaultRootWindow(display);

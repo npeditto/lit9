@@ -19,12 +19,14 @@ tasto_4			20DF		7bfb		30CF
 tasto_5			A05F		7bfa		609F
 tasto_6			609F		7bf9		708F
 tasto_7                 E01F		7bf8		F00F
-tasto_8                 10EF		72fdc23dbf7		38C7		
+tasto_8                 10EF		7bf7		38C7	
 tasto_9                 906F		7bf6		B847	
 tasto_0                 00FF		7bff		20DF
 vol_plus		58A7		7bef
 vol_minus		7887		7bee
 tasto_exit              C23D		7bf1
+mute_clear				7bf5
+Record        				7be8
 ********************************************************************/
 #ifndef __pulsanti_davide_h__
 #define __pulsanti_davide_h__
@@ -55,7 +57,7 @@ tasto_exit              C23D		7bf1
 #define vol_plus	"2fd58a7"
 #define vol_minus	"2fd7887"
 #define tasto_exit	"2fdc23d"
-#define mute 		"2fd08f7"
+#define mute_clear	"2fd08f7"
 
 #endif
 

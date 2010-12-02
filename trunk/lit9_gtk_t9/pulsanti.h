@@ -25,6 +25,8 @@ tasto_0                 00FF		7bff		20DF
 vol_plus		58A7		7bef
 vol_minus		7887		7bee
 tasto_exit              C23D		7bf1
+mute_clear				7bf5
+Record        				7be8
 ********************************************************************/
 #ifndef __pulsanti_h__
 #define __pulsanti_h__
@@ -55,7 +57,9 @@ tasto_exit              C23D		7bf1
 #define vol_plus	"ff07bef"
 #define vol_minus	"ff07bee"
 #define tasto_exit	"ff07bf1"
-#define mute 		"2fd08f7"
+#define mute_clear      "ff07bf5"
+#define Record        	"ff07be8"
+
 
 #endif
 
