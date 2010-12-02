@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-#include "pulsanti.h"
-//#include "pulsanti_davide.h"
+//#include "pulsanti.h"
+#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -306,16 +306,19 @@ struct nodo *trova (struct nodo *head)
 }
 
 //Algoritmo T9 di predizione del testo basato su liste
-void gestionet9 (int tasto)
+void gestionet9 (int tasto)              //se passiamo 99 veniamo da una cancellazione
 {
 	numparoletrovate=0;
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
-	luncodicet9=luncodicet9+1;
-	sprintf(codicet9,"%s%d",codicet9,tasto);
+	if (tasto<99)
+	{
+		luncodicet9=luncodicet9+1;
+		sprintf(codicet9,"%s%d",codicet9,tasto);
+	}
 	printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
 	// decidiamo se  cercare dall'inizio o no
 	struct nodo *t;
-	if (luncodicet9==1) 
+	if ((luncodicet9==1) || (tasto==99)) 
 	{
 	     t=trova(listap);
 	     if (t==NULL) t=trova(lista);
@@ -509,16 +512,15 @@ void elabora(char *codice)
 	//tasto yellow Attivazione/Disattivazione T9
 	if (strcmp(codice, yellow)==0)
 	{
+		bzero(codicet9,30);
+		luncodicet9 = 0;
 		if (statot9==0)
         	{
         		if (flagcaricat9==1)
 			{
 
 				statot9=1;
-				bzero(codicet9,30);
-				luncodicet9 = 0;
-		               	printf("\nT9 attivo\n");
-
+				printf("\nT9 attivo\n");
 				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
 				mylabel2 = gtk_label_new (NULL);
 				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
@@ -541,6 +543,7 @@ void elabora(char *codice)
 			gdk_window_process_all_updates ();
 
          	}
+		
    	}
 
 	//Tasti CH+ e CH- per lo scorrimento della listbox
@@ -650,22 +653,31 @@ void elabora(char *codice)
    		else if (strcmp(codice, mute_clear)==0) 
 		{
 
-			//tasto = XK_BackSpace;
-printf("\nlungh_prima: %d", luncodicet9 );
-			if(luncodicet9 > 0){
+			
+			if ((luncodicet9==0) || (statot9==0)) tasto = XK_BackSpace;
+			else if ((luncodicet9>0) && (statot9==1))
+			{
+
+				//printf("\nlungh_prima: %d", luncodicet9 );
 				strncpy (codicet9,codicet9,luncodicet9-1);
 				codicet9[luncodicet9-1]='\0';
 				luncodicet9=luncodicet9-1;
-				fflush(stdout);
-				printf("\ncodicet9: %s", codicet9 );
-				if(luncodicet9 == 0)
+				//fflush(stdout);
+				//printf("\ncodicet9: %s", codicet9 );
+				if(luncodicet9 == 0) 
+				{
 					bzero(codicet9,30);
-printf("\nlungh_dopo: %d", luncodicet9 );
-
+					numparoletrovate=0;
+					gtk_list_clear_items ((GtkList *) gtklist,0,N);
+					gdk_window_process_all_updates ();
+				}
+				else gestionet9(99);
+				//printf("\nlungh_dopo: %d", luncodicet9 );
+				return;
 					
 			}
 
-			return;
+			
 		
 
 
@@ -882,6 +894,7 @@ int main( int argc, char *argv[])
 		printf("\nerrore partenza thread di gestione irda");
 		exit(EXIT_FAILURE);
 	}
+	luncodicet9=0;
 
 
 	statot9=0;
