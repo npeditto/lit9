@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-//#include "pulsanti.h"
-#include "pulsanti_davide.h"
+#include "pulsanti.h"
+//#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -626,12 +626,7 @@ void elabora(char *codice)
 		//Stamperà il carattere "a" qualora premessimo un tasto non mappato con nessuna funzionalità
 		int tasto = XK_A;
 
-		if (statot9==1)
-		{
-			bzero(codicet9,30);
-			luncodicet9 = 0;
 
-		}
 		//tasti di navigazione web: Tab, Invio, 
 		// Vol+ e Vol- per lo scorrimento di elenchi,
    		if (strcmp(codice, red)==0) tasto=XK_Tab;
@@ -642,9 +637,41 @@ void elabora(char *codice)
    		else if (strcmp(codice, tasto_1)==0) tasto = XK_period;
 
 		//Tasto spazio
-   		else if (strcmp(codice, tasto_0)==0) tasto = XK_space;
+   		else if (strcmp(codice, tasto_0)==0) {
+			if (statot9==1)
+			{
+				bzero(codicet9,30);
+				luncodicet9 = 0;
+
+			}
+			tasto = XK_space;
+		}
 		//Tasto per cancellare
-   		else if (strcmp(codice, mute_clear)==0) tasto = XK_BackSpace;
+   		else if (strcmp(codice, mute_clear)==0) 
+		{
+
+			//tasto = XK_BackSpace;
+printf("\nlungh_prima: %d", luncodicet9 );
+			if(luncodicet9 > 0){
+				strncpy (codicet9,codicet9,luncodicet9-1);
+				codicet9[luncodicet9-1]='\0';
+				luncodicet9=luncodicet9-1;
+				fflush(stdout);
+				printf("\ncodicet9: %s", codicet9 );
+				if(luncodicet9 == 0)
+					bzero(codicet9,30);
+printf("\nlungh_dopo: %d", luncodicet9 );
+
+					
+			}
+
+			return;
+		
+
+
+		}
+
+
 
 		// Get the root window for the current display.
 		Window winRoot = XDefaultRootWindow(display);
