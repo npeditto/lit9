@@ -512,6 +512,7 @@ void elabora(char *codice)
 	//tasto yellow Attivazione/Disattivazione T9
 	if (strcmp(codice, yellow)==0)
 	{
+		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
 		bzero(codicet9,30);
 		luncodicet9 = 0;
 		if (statot9==0)
@@ -543,13 +544,16 @@ void elabora(char *codice)
 			gdk_window_process_all_updates ();
 
          	}
-		
+		gdk_window_process_all_updates ();
+		XWarpPointer(display, None, None, 0, 0, 0, 0, 60, 90);
+	
    	}
 
 	//Tasti CH+ e CH- per lo scorrimento della listbox
    	else if (strcmp(codice, ch_minus)==0)
    	{
         	scorri();
+
    	}
    	else  if (strcmp(codice, ch_plus)==0)
    	{
