@@ -75,7 +75,8 @@ char codicet9[30];
 char nuovaparola[30];
 int luncodicet9;
 int flagcaricat9;
-
+int statoiniziale;
+int flagparolaconpr;
 gchar* parole[N];
 int numparoletrovate;	//numero parole trovate dalla predizione del t9
 sqlite3 *db;
@@ -100,8 +101,8 @@ struct nodo {
 };
 struct nodo vetparole[N];
 
-
-
+int statopredittore;
+void gestionet9 (int tasto, int modo);
 //Funzione per la gestione degli eventi associati alla pressione dei tasti
 XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool press ,int keycode, int modifiers)
 {
@@ -132,7 +133,7 @@ XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool pr
 //Funzine per lo scorrimento circolare della listbox
 void scorri ()
 {
-	if (statot9==1 && numparoletrovate>0)
+	if ((numparoletrovate>0) && ((statot9==1) || (statopredittore==1)))
 	{
 		if (indice==numparoletrovate-1) indice=0;
 		else indice=indice+1;
@@ -207,7 +208,8 @@ void caricamatrice ()
 void parola_t9 ()
 {
 
-	if (luncodicet9==0) return;
+	if ((luncodicet9==0) && (statoiniziale==0)) return;
+	statoiniziale=0;
 	int dim_parola = strlen(vetparole[indice].parola);
 	
 
@@ -216,12 +218,24 @@ void parola_t9 ()
 	Window winFocus;
 	int revert;
 	XGetInputFocus(display, &winFocus, &revert);
-
+	char word[dim_parola];
+	sprintf(word,"%s",vetparole[indice].parola);	
+	if ((statopredittore ==1) && (flagparolaconpr==1))
+	{
+		bzero(word,dim_parola);
+		char com[dim_parola];
+		sprintf(com,"%s",vetparole[indice].parola);	
+		int j=0;
+		for (int i=luncodicet9; i < dim_parola; i++)
+		{
+			word[j]=com[i];
+			j=j+1;
+		}
+		word[j]='\0';
+		dim_parola =j;
+	}
 	for (int kk=0; kk < dim_parola; kk++) 
 	{
-
-		gchar word[dim_parola];
-		sprintf(word,"%s",vetparole[indice].parola);	
 
 		gchar  *let;
 		let = (gchar*)malloc(sizeof(gchar));
@@ -256,6 +270,7 @@ char query[200];
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
 	luncodicet9 = 0;
 	bzero(codicet9,30);
+	bzero(nuovaparola,30);
 		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
 		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 1);
 		gdk_window_process_all_updates ();
@@ -270,22 +285,17 @@ char query[200];
 void tappa()
 {
 
-		if (tastocor==0) 
-			return;
-
+	if (tastocor==0) return;
+	
+	if (flagparolaconpr==0)
+	{
+Display *display = XOpenDisplay(0);
+   	if(display == NULL) return;
+     	Window winRoot = XDefaultRootWindow(display);
+	Window winFocus;
+	int revert;
+	XGetInputFocus(display, &winFocus, &revert);
 		int tasto=matrice[tastocor-2][indice];
-
-	 	Display *display = XOpenDisplay(0);
-
-	   	if(display == NULL)
-	      		return;
-
-	     	Window winRoot = XDefaultRootWindow(display);
-
-		// Find the window which has the current keyboard focus.
-		Window winFocus;
-		int revert;
-		XGetInputFocus(display, &winFocus, &revert);
 		 
 		// Send a fake key press event to the window.
 		XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, tasto, 0);
@@ -296,10 +306,13 @@ void tappa()
 		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event); 
 		XCloseDisplay(display);
 
-		if (statot9==2)
+		if ((statot9==2) || (statopredittore==1))
 		{
-			luncodicet9=luncodicet9+1;
-			sprintf(codicet9,"%s%d",codicet9,tastocor);
+			if (statot9==2)
+			{
+				luncodicet9=luncodicet9+1;
+				sprintf(codicet9,"%s%d",codicet9,tastocor);
+			}
 			//printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
 			char car[2];
 			bzero(car,2);
@@ -308,12 +321,17 @@ void tappa()
 			//printf("\nParola composta: %s", nuovaparola);
 			fflush(stdout);
 		}
-
+		if (statopredittore==1) gestionet9(tastocor,2);
+	}
+	else
+	{
+		parola_t9();
+	}
 }
 
 
 //Algoritmo T9 di predizione del testo basato su liste
-void gestionet9 (int tasto)              //se passiamo 99 veniamo da una cancellazione
+void gestionet9 (int tasto, int modo)              //se passiamo 99 veniamo da una cancellazione
 {
 	numparoletrovate=0;
 	int i=0;
@@ -323,16 +341,21 @@ void gestionet9 (int tasto)              //se passiamo 99 veniamo da una cancell
 		bzero(vetparole[i].parola,30);
 	}
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
-	if (tasto<99)
+	if ((tasto<99) && (tasto>0))
 	{
 		luncodicet9=luncodicet9+1;
 		sprintf(codicet9,"%s%d",codicet9,tasto);
 	}
-	printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
-	char query[200];
-	bzero (query,200);
-//se freq0 globale, se 1 pers
-sprintf (query, " select parola dist,frequenza from personale where codice like \'%s%%\' union select parola dist,frequenza from globale where codice like \'%s%%\' order by 2 desc, 1 asc limit 0,5;",codicet9,codicet9);
+	if (tasto>0) printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
+	char query[250];
+	bzero (query,250);
+if (modo==0) sprintf (query, " select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,5;",codicet9,codicet9);
+else if (modo==1) 
+{
+sprintf (query, " select parola, frequenza, codice from personale order by 2 desc limit 0,5;");
+statoiniziale=1;
+}
+else if (modo==2) sprintf (query, " select parola dist,frequenza, codice from personale where parola like \'%s%%\' union select parola dist,frequenza, codice from globale where parola like \'%s%%\' order by frequenza desc, parola asc limit 0,5;",nuovaparola,nuovaparola);
   	GtkWidget       *list_item;
 	GList           *dlist=NULL;
 	gchar  *str;
@@ -360,7 +383,7 @@ sprintf (query, " select parola dist,frequenza from personale where codice like 
 		    numparoletrovate=numparoletrovate+1;
 		    printf ("\n");
 		    // sqlite3_column_text returns a const void* , typecast it to const char*
-		    for(int col=0 ; col<cols;col++)
+		    for(int col=0 ; col<cols-1;col++)
 		    {
 		        const char *val = (const char*)sqlite3_column_text(stmt,col);
 		        //printf("%s = %s\t",sqlite3_column_name(stmt,col),val);
@@ -392,6 +415,8 @@ sprintf (query, " select parola dist,frequenza from personale where codice like 
 	    
 	    }
 	    indice=0;
+		tastoprec=0;
+		if ((modo ==2) && (numparoletrovate>0)) flagparolaconpr=1;
 		Display *display = XOpenDisplay(0);
 		if(numparoletrovate> 0)
 		{
@@ -402,18 +427,23 @@ sprintf (query, " select parola dist,frequenza from personale where codice like 
 		}
 		else
 		{
-			statot9=2;
-			tastoprec=0;
-			printf("\nNuova parola");
-			bzero(codicet9,30);
-			luncodicet9 = 0;
-			bzero(nuovaparola,30);
-			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-			mylabel2 = gtk_label_new (NULL);
-			gtk_label_set_text (GTK_LABEL (mylabel2),"Nuova parola");
-			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
-			gtk_widget_show (mylabel2);
-			gdk_window_process_all_updates ();
+			if (statot9==1)
+			{
+				statopredittore=0;
+				flagparolaconpr=0;
+				statot9=2;
+				tastoprec=0;
+				printf("\nNuova parola");
+				bzero(codicet9,30);
+				luncodicet9 = 0;
+				bzero(nuovaparola,30);
+				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+				mylabel2 = gtk_label_new (NULL);
+				gtk_label_set_text (GTK_LABEL (mylabel2),"Nuova parola");
+				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+				gtk_widget_show (mylabel2);
+				gdk_window_process_all_updates ();
+			}
 
 		}
 		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
@@ -431,16 +461,10 @@ void caricalist (int tasto, Display* display)
 {
 
 	if (statot9 == 1)
-		gestionet9(tasto);
+		gestionet9(tasto,0);
 	else
 	{
-/*
-		if (statot9==2)
-		{
-			luncodicet9=luncodicet9+1;
-			sprintf(codicet9,"%s%d",codicet9,tasto);
-			printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
-		}*/
+
     		if (tasto == tastoprec) 
 			scorri();
 		else
@@ -457,7 +481,7 @@ void caricalist (int tasto, Display* display)
 			str = (gchar*)malloc(sizeof(gchar));
 			sprintf(str,"");
 			tastocor=tasto;
-    
+    			flagparolaconpr=0;
 			//con questo for infunzione del tasto numerico premuto caricheremo la lista
 			//con le corrispondenti lettere associate al tasto numerico
     			for (i=0; i<N; i++) 
@@ -565,14 +589,60 @@ void elabora(char *codice)
 	gchar  *str;
 	str = (gchar*)malloc(sizeof(gchar));
 	sprintf(str,"");
+	//tasto list per Attivazione/Disattivazione predittore
+	if (strcmp(codice, list)==0)
+	{
+		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
+		statot9=0;
+		bzero(codicet9,30);
+		luncodicet9 = 0;
+		bzero(nuovaparola,30);
+		flagparolaconpr=0;
+		if (statopredittore==0)
+        	{
+        		if (flagcaricat9==1)
+			{
+
+				statopredittore=1;
+				printf("\npredittore attivo\n");
+				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+				mylabel2 = gtk_label_new (NULL);
+				gtk_label_set_text (GTK_LABEL (mylabel2),"Predittore attivo");
+				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+				gtk_widget_show (mylabel2);
+				
+			
+
+			}
+        	}
+		else
+		{
+                	statopredittore=0;
+                	printf("\nPredittore disattivato");
+			gtk_list_clear_items ((GtkList *) gtklist,0,N);
+			tastocor=0;
+			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+			mylabel2 = gtk_label_new (NULL);
+			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+			gtk_label_set_text (GTK_LABEL (mylabel2),"Predittore disattivato");
+			gtk_widget_show (mylabel2);
+			gdk_window_process_all_updates ();
+
+         	}
+		gdk_window_process_all_updates ();
+		XWarpPointer(display, None, None, 0, 0, 0, 0, 60, 90);
+	
+   	}
 
 	//tasto yellow Attivazione/Disattivazione T9
-	if (strcmp(codice, yellow)==0)
+	else if (strcmp(codice, yellow)==0)
 	{
 		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
 		bzero(codicet9,30);
 		luncodicet9 = 0;
-		if (statot9==0)
+		statopredittore=0;
+		flagparolaconpr=0;
+		if ((statot9==0) || (statot9==2))
         	{
         		if (flagcaricat9==1)
 			{
@@ -584,15 +654,15 @@ void elabora(char *codice)
 				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
 				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
 				gtk_widget_show (mylabel2);
-			
-
+				gestionet9(0,1);
 			}
         	}
 		else
 		{
                 	statot9=0;
                 	printf("\nT9 disattivato");
-
+			gtk_list_clear_items ((GtkList *) gtklist,0,N);
+			tastocor=0;
 			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
 			mylabel2 = gtk_label_new (NULL);
 			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 disattivato");
@@ -702,9 +772,10 @@ void elabora(char *codice)
 
 		//Tasto spazio
    		else if (strcmp(codice, tasto_0)==0) {
-			if (statot9==1)
+			if ((statot9==1) || (statopredittore==1))
 			{
 				bzero(codicet9,30);
+				bzero(nuovaparola,30);
 				luncodicet9 = 0;
 
 			}
@@ -757,12 +828,12 @@ void elabora(char *codice)
 					gtk_list_clear_items ((GtkList *) gtklist,0,N);
 					gdk_window_process_all_updates ();
 				}
-				else gestionet9(99);
+				else gestionet9(99,0);
 				//printf("\nlungh_dopo: %d", luncodicet9 );
 				return;
 					
 			}
-			else if ((luncodicet9>0) && (statot9==2))
+			if ((luncodicet9>0) && ((statot9==2) || (statopredittore==1)))
 			{
 				
 				strncpy (nuovaparola,nuovaparola,luncodicet9-1);
@@ -772,7 +843,17 @@ void elabora(char *codice)
 				luncodicet9=luncodicet9-1;
 				printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
 				printf("\nParola composta: %s\n",nuovaparola);
-				tasto=XK_BackSpace;
+				if (statopredittore==1) 
+				{
+					if(luncodicet9 == 0) 
+					{
+						bzero(nuovaparola,30);
+						numparoletrovate=0;
+						gtk_list_clear_items ((GtkList *) gtklist,0,N);
+						gdk_window_process_all_updates ();
+					}
+					else gestionet9(99,2);
+				}
 					
 			}
 
@@ -913,8 +994,8 @@ int main( int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	luncodicet9=0;
-
-
+	statoiniziale =0;
+	statopredittore=0;
 	statot9=0;
 	tastocor=0;
 	tastoprec=0;

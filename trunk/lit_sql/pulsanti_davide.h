@@ -58,7 +58,7 @@ Record        				7be8
 #define vol_minus	"2fd7887"
 #define tasto_exit	"2fdc23d"
 #define mute_clear	"2fd08f7"
-
+#define list		"2fd4ab5"
 #endif
 
 

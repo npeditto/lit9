@@ -59,7 +59,7 @@ Record        				7be8
 #define tasto_exit	"ff07bf1"
 #define mute_clear      "ff07bf5"
 #define Record        	"ff07be8"
-
+#define list		"2fd4ab5"
 
 #endif
 
