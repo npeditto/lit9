@@ -1,11 +1,9 @@
 #labels LIT9,Remote,IRDA
 =Toshiba_CT-90287-TV remote control configuration=
 LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to this configuration:
-
+---
 begin remote
-
-  name  mioTelecomando
-
+  name  LITtoshiba
   bits           16
 
   flags SPACE_ENC|CONST_LENGTH
@@ -125,3 +123,5 @@ begin remote
       end codes
 
 end remote
+
+---
