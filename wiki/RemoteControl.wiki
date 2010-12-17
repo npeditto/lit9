@@ -1,9 +1,13 @@
 #labels LIT9,Remote,IRDA
 =Toshiba_CT-90287-TV remote control configuration=
 LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to this configuration:
----
+
+`<hr>`
+
 begin remote
+
   name  LITtoshiba
+
   bits           16
 
   flags SPACE_ENC|CONST_LENGTH
@@ -28,9 +32,7 @@ begin remote
 
   toggle_bit_mask 0x0
 
-
       begin codes
-
 
           power                    0x48B7
 
