@@ -1,5 +1,3 @@
 #labels LIT9,remotecontrol,IRDA
-#Toshiba_CT-90287-TV remote control configuation
-
-=Toshiba_CT-90287-TV remote control configuation=
+=Toshiba_CT-90287-TV remote control configuration=
 LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to this configuration:
