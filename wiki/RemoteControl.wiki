@@ -1,8 +1,8 @@
 #labels LIT9,Remote,IRDA
 =Toshiba_CT-90287-TV remote control configuration=
-LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to this configuration:
+LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to the following configuration.
 
----- 
+You can insert these lines in: /etc/lirc/lircd.conf
 
 begin remote
 
