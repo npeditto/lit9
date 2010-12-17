@@ -2,7 +2,7 @@
 =Toshiba_CT-90287-TV remote control configuration=
 LIT9 was tested with a Toshiba_CT-90287-TV remote control, according to this configuration:
 
-`<hr>`
+---- 
 
 begin remote
 
@@ -32,7 +32,8 @@ begin remote
 
   toggle_bit_mask 0x0
 
-      begin codes
+
+begin codes
 
           power                    0x48B7
 
