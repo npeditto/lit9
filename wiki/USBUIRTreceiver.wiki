@@ -1,0 +1,6 @@
+#summary USB UIRT receiver configuration
+#labels LIT9,USBUIRT,receiver
+
+= USB UIRT receiver configuration =
+
+LIT9 was tested with a USB-UIRT receiver.
