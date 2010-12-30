@@ -102,6 +102,8 @@ struct nodo {
 struct nodo vetparole[N];
 
 int statopredittore;
+
+
 void gestionet9 (int tasto, int modo);
 //Funzione per la gestione degli eventi associati alla pressione dei tasti
 XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool press ,int keycode, int modifiers)
@@ -129,6 +131,8 @@ XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool pr
 	   return event;
 
 }
+
+
 
 //Funzine per lo scorrimento circolare della listbox
 void scorri ()
@@ -250,8 +254,10 @@ void parola_t9 ()
 
 	   	event = createKeyEvent(display, winFocus, winRoot, false, XStringToKeysym(let), 0);
 	   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
-/**/
-	}printf("\n");
+
+	}
+	printf("\n");
+
 	XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, XK_space, 0);	
    	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
    	event = createKeyEvent(display, winFocus, winRoot, false, XK_space, 0);
@@ -260,12 +266,16 @@ void parola_t9 ()
         printf("\nNuova frequenza parola selezionata: %d\n",vetparole[indice].frequenza);
 
 
-char query[200];
+	char query[200];
 	bzero (query,200);
-	if (vetparole[indice].frequenza>1) sprintf (query, "update personale set frequenza =%d where parola =\'%s\';",vetparole[indice].frequenza,vetparole[indice].parola);
-        else sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',1);",codicet9,vetparole[indice].parola);
+
+	if (vetparole[indice].frequenza>1) 
+		sprintf (query, "update personale set frequenza =%d where parola =\'%s\';",vetparole[indice].frequenza,vetparole[indice].parola);
+        else 
+		sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',1);",codicet9,vetparole[indice].parola);
 
 	printf("\n%s\n",query);
+
 	int  retval = retval = sqlite3_exec(db,query,0,0,0);
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
 	luncodicet9 = 0;
@@ -289,12 +299,13 @@ void tappa()
 	
 	if (flagparolaconpr==0)
 	{
-Display *display = XOpenDisplay(0);
-   	if(display == NULL) return;
-     	Window winRoot = XDefaultRootWindow(display);
-	Window winFocus;
-	int revert;
-	XGetInputFocus(display, &winFocus, &revert);
+
+		Display *display = XOpenDisplay(0);
+	   	if(display == NULL) return;
+	     	Window winRoot = XDefaultRootWindow(display);
+		Window winFocus;
+		int revert;
+		XGetInputFocus(display, &winFocus, &revert);
 		int tasto=matrice[tastocor-2][indice];
 		 
 		// Send a fake key press event to the window.
@@ -324,9 +335,9 @@ Display *display = XOpenDisplay(0);
 		if (statopredittore==1) gestionet9(tastocor,2);
 	}
 	else
-	{
 		parola_t9();
-	}
+
+	
 }
 
 
@@ -335,27 +346,37 @@ void gestionet9 (int tasto, int modo)              //se passiamo 99 veniamo da u
 {
 	numparoletrovate=0;
 	int i=0;
+
 	for (i=0; i<N;i++)
 	{
 		vetparole[i].frequenza=0;
 		bzero(vetparole[i].parola,30);
 	}
+
 	gtk_list_clear_items ((GtkList *) gtklist,0,N);
+
 	if ((tasto<99) && (tasto>0))
 	{
 		luncodicet9=luncodicet9+1;
 		sprintf(codicet9,"%s%d",codicet9,tasto);
 	}
-	if (tasto>0) printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
+
+	if (tasto>0) 
+		printf("\nTasti premuti: %s\tlunghezza:%d\n",codicet9,luncodicet9);
+
 	char query[250];
 	bzero (query,250);
-if (modo==0) sprintf (query, " select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,5;",codicet9,codicet9);
-else if (modo==1) 
-{
-sprintf (query, " select parola, frequenza, codice from personale order by 2 desc limit 0,5;");
-statoiniziale=1;
-}
-else if (modo==2) sprintf (query, " select parola dist,frequenza, codice from personale where parola like \'%s%%\' union select parola dist,frequenza, codice from globale where parola like \'%s%%\' order by frequenza desc, parola asc limit 0,5;",nuovaparola,nuovaparola);
+
+	if (modo==0) 
+		sprintf (query, " select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,5;",codicet9,codicet9);
+	else if (modo==1) 
+	{
+		sprintf (query, " select parola, frequenza, codice from personale order by 2 desc limit 0,5;");
+		statoiniziale=1;
+	}
+	else if (modo==2) 
+		sprintf (query, " select parola dist,frequenza, codice from personale where parola like \'%s%%\' union select parola dist,frequenza, codice from globale where parola like \'%s%%\' order by frequenza desc, parola asc limit 0,5;",nuovaparola,nuovaparola);
+
   	GtkWidget       *list_item;
 	GList           *dlist=NULL;
 	gchar  *str;
@@ -363,17 +384,18 @@ else if (modo==2) sprintf (query, " select parola dist,frequenza, codice from pe
 	sprintf(str,"");
 	printf("\n%s\n",query);
 	int  retval = sqlite3_prepare_v2(db,query,-1,&stmt,0);    
+
 	if(retval)
 	{
         	printf("\nerrore database\n");
         	return;
 	}
         
-    // Read the number of rows fetched
-	    int cols = sqlite3_column_count(stmt);
+    	// Read the number of rows fetched
+    	int cols = sqlite3_column_count(stmt);
 	    
-	   while(1)
-	    {
+   	while(1)
+    	{
 		// fetch a row's status
 		retval = sqlite3_step(stmt);
 		if(retval == SQLITE_DONE) break;
@@ -413,45 +435,49 @@ else if (modo==2) sprintf (query, " select parola dist,frequenza, codice from pe
 		    return;
 		}
 	    
-	    }
-	    indice=0;
-		tastoprec=0;
-		if ((modo ==2) && (numparoletrovate>0)) flagparolaconpr=1;
-		Display *display = XOpenDisplay(0);
-		if(numparoletrovate> 0)
-		{
-			 
-			gtk_list_append_items((GtkList*)(gtklist), dlist);
-			gtk_list_select_item((GtkList *) gtklist,indice);
-			
-		}
-		else
-		{
-			if (statot9==1)
-			{
-				statopredittore=0;
-				flagparolaconpr=0;
-				statot9=2;
-				tastoprec=0;
-				printf("\nNuova parola");
-				bzero(codicet9,30);
-				luncodicet9 = 0;
-				bzero(nuovaparola,30);
-				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-				mylabel2 = gtk_label_new (NULL);
-				gtk_label_set_text (GTK_LABEL (mylabel2),"Nuova parola");
-				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
-				gtk_widget_show (mylabel2);
-				gdk_window_process_all_updates ();
-			}
+    	}
+    	indice=0;
+	tastoprec=0;
 
-		}
-		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
-		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
-		gdk_window_process_all_updates ();
-		XCloseDisplay(display);
+	if ((modo ==2) && (numparoletrovate>0)) 
+		flagparolaconpr=1;
 
-	    printf ("\n");
+	Display *display = XOpenDisplay(0);
+
+	if(numparoletrovate> 0)
+	{
+		 
+		gtk_list_append_items((GtkList*)(gtklist), dlist);
+		gtk_list_select_item((GtkList *) gtklist,indice);
+		
+	}
+	else
+	{
+		if (statot9==1)
+		{
+			statopredittore=0;
+			flagparolaconpr=0;
+			statot9=2;
+			tastoprec=0;
+			printf("\nNuova parola");
+			bzero(codicet9,30);
+			luncodicet9 = 0;
+			bzero(nuovaparola,30);
+			gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
+			mylabel2 = gtk_label_new (NULL);
+			gtk_label_set_text (GTK_LABEL (mylabel2),"Nuova parola");
+			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+			gtk_widget_show (mylabel2);
+			gdk_window_process_all_updates ();
+		}
+
+	}
+	XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
+	XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
+	gdk_window_process_all_updates ();
+	XCloseDisplay(display);
+
+    	printf ("\n");
 	
 }
 
@@ -859,11 +885,8 @@ void elabora(char *codice)
 
 
 			
-		
-
 
 		}
-
 
 
 		// Get the root window for the current display.
@@ -882,9 +905,11 @@ void elabora(char *codice)
 		event = createKeyEvent(display, winFocus, winRoot, false, tasto, 0);
 		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 
+
        	}  
 
 	XCloseDisplay(display);
+
 
 }
 
