@@ -1,32 +1,33 @@
 /*******************************************************************
 	       mioTelecomando(2fd)   Konig(ff0)		LG-Nico
-ch_minus		F807		7bec
-ch_plus			D827		7bed
-power			48B7		7bf3		28D7
-blue			D22D		7ba1
-red			12ED		7ba4
-green			926D		7ba3
-yellow                  52AD		7ba2
-down			B847		7be0		916E
+ch_minus		f807		7bec
+ch_plus			d827		7bed
+power			48b7		7bf3		28D7
+blue			d22d		7ba1
+red			12ed		7ba4
+green			926d		7ba3
+yellow                  52ad		7ba2
+down			b847		7be0		916E
 up			9867		7be1		41BE
-right			02FD		7bde		09F6
-left			42BD		7bdf		C13E
-ok			847B		7bdd		718E
-tasto_1			807F		7bfe		A05F
-tasto_2			40BF		7bfd		609F
-tasto_3			C03F		7bfc		E01F
-tasto_4			20DF		7bfb		30CF
-tasto_5			A05F		7bfa		609F
-tasto_6			609F		7bf9		708F
-tasto_7                 E01F		7bf8		F00F
-tasto_8                 10EF		7bf7		38C7		
-tasto_9                 906F		7bf6		B847	
-tasto_0                 00FF		7bff		20DF
-vol_plus		58A7		7bef
+right			02fd		7bde		09F6
+left			42bd		7bdf		C13E
+ok			847b		7bdd		718E
+tasto_1			807f		7bfe		A05F
+tasto_2			40bf		7bfd		609F
+tasto_3			c03f		7bfc		E01F
+tasto_4			20df		7bfb		30CF
+tasto_5			a05f		7bfa		609F
+tasto_6			609f		7bf9		708F
+tasto_7                 e01f		7bf8		F00F
+tasto_8                 10ef		7bf7		38C7		
+tasto_9                 906f		7bf6		B847	
+tasto_0                 00ff		7bff		20DF
+vol_plus		58a7		7bef
 vol_minus		7887		7bee
-tasto_exit              C23D		7bf1
-mute_clear				7bf5
+tasto_exit              c23d		7bf1
+mute_clear		7bf5		7bf5
 Record        				7be8
+list					7bdc
 ********************************************************************/
 #ifndef __pulsanti_h__
 #define __pulsanti_h__
@@ -59,7 +60,7 @@ Record        				7be8
 #define tasto_exit	"ff07bf1"
 #define mute_clear      "ff07bf5"
 #define Record        	"ff07be8"
-#define list		"2fd4ab5"
+#define list		"ff07bdc"
 
 #endif
 

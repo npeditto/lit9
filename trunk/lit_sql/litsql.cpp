@@ -61,8 +61,8 @@
 
 
 //remote-control's configuration (mapping)
-//#include "pulsanti.h"
-#include "pulsanti_davide.h"
+#include "pulsanti.h"
+//#include "pulsanti_davide.h"
 
 void *thtel (void *arg);		//thread per irw
 void *thfilet9 (void *arg);             // thread per caricare il t9
@@ -615,6 +615,7 @@ void elabora(char *codice)
 	gchar  *str;
 	str = (gchar*)malloc(sizeof(gchar));
 	sprintf(str,"");
+
 	//tasto list per Attivazione/Disattivazione predittore
 	if (strcmp(codice, list)==0)
 	{
@@ -735,10 +736,10 @@ void elabora(char *codice)
 		}
 	}
 	//Tasti direzionali per gestire il puntatore del mouse
-   	else if (strcmp(codice, down)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      
-   	else if (strcmp(codice, up)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo*(-1));
-   	else if (strcmp(codice, right)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, passo, 0);
-   	else if (strcmp(codice, left)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, passo*(-1),0);
+   	else if (strcmp(codice, down)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      //tasto DOWN
+   	else if (strcmp(codice, up)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo*(-1));   //tasto UP
+   	else if (strcmp(codice, right)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, passo, 0);    //tasto RIGHT
+   	else if (strcmp(codice, left)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, passo*(-1),0); //tasto LEFT
 
 	//corrisponde al click del pulsante sinistro del mouse
    	else if (strcmp(codice, ok)==0)
@@ -789,10 +790,10 @@ void elabora(char *codice)
 
 		//tasti di navigazione web: Tab, Invio, 
 		// Vol+ e Vol- per lo scorrimento di elenchi,
-   		if (strcmp(codice, red)==0) tasto=XK_Tab;
-   		else if (strcmp(codice, green)==0) tasto =XK_Return;
-   		else if (strcmp(codice, vol_plus)==0) tasto=XK_Up;
-   		else if (strcmp(codice, vol_minus)==0) tasto =XK_Down;
+   		if (strcmp(codice, red)==0) tasto=XK_Tab;		//tasto ROSSO
+   		else if (strcmp(codice, green)==0) tasto =XK_Return;    //tasto VERDE
+   		else if (strcmp(codice, vol_plus)==0) tasto=XK_Up;      //tasto volume+
+   		else if (strcmp(codice, vol_minus)==0) tasto =XK_Down;  //tasto volume-
 		//punto
    		else if (strcmp(codice, tasto_1)==0) tasto = XK_period;
 
