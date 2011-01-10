@@ -56,6 +56,9 @@
 #include <pthread.h>
 #include <sqlite3.h>
 #include <ctype.h>
+
+//#include <wchar.h>
+
 #define KEYCODE XK_A
 #define N 5
 
@@ -245,8 +248,9 @@ void parola_t9 ()
 		let = (gchar*)malloc(sizeof(gchar));
 		sprintf(let,"");
 
+
 		sprintf(let,"%c",word[kk]);
-		//printf("%s", let);
+		printf("%s", let);
 
 
 	   	XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, XStringToKeysym(let), 0);	
@@ -262,6 +266,16 @@ void parola_t9 ()
    	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
    	event = createKeyEvent(display, winFocus, winRoot, false, XK_space, 0);
    	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+
+//************************************************************************************************
+
+	XKeyEvent event1 = createKeyEvent(display, winFocus, winRoot, true, 138, 0);	
+   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event1);
+   	event1 = createKeyEvent(display, winFocus, winRoot, false, 138, 0);
+   	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event1);
+
+//************************************************************************************************
+
 	vetparole[indice].frequenza=vetparole[indice].frequenza+1;
         printf("\nNuova frequenza parola selezionata: %d\n",vetparole[indice].frequenza);
 
@@ -612,6 +626,9 @@ void elabora(char *codice)
 	if(display == NULL)
 		return;
 
+//	wchar_t *str;
+//	str = (wchar_t*)malloc(sizeof(wchar_t));
+//	sprintf((char*)str,"");	
 	gchar  *str;
 	str = (gchar*)malloc(sizeof(gchar));
 	sprintf(str,"");
@@ -785,9 +802,32 @@ void elabora(char *codice)
 	
 	else {
 		//Stamperà il carattere "a" qualora premessimo un tasto non mappato con nessuna funzionalità
-		int tasto = XK_A;
+		//int tasto = XK_A;           // (mod=0 -> a)  (mod=1 -> A)
+		//int tasto1 = XK_exclam;     // (mod=0 -> 1)  (mod=0 -> !)
+		//int tasto2 = XK_at;         // (mod=XK_Shift_R -> @)
+		
+/*
+int tasto = XK_egrave;
+int tasto1 = XK_egrave;
+int tasto2 = XK_egrave;
+int tasto3 = XK_egrave;
+*/
+
+int tasto = XK_plus;
+int tasto1 = XK_plus;
+//int tasto2 = XK_plus;   //XK_Shift_R
+//int tasto3 = XK_plus;   //XK_Shift_L
+
+int tasto2 = XK_plus;
+int tasto3 = XK_plus;
 
 
+/*
+int tasto = XK_agrave;
+int tasto1 = XK_agrave;
+int tasto2 = XK_agrave;
+int tasto3 = XK_agrave;
+*/
 		//tasti di navigazione web: Tab, Invio, 
 		// Vol+ e Vol- per lo scorrimento di elenchi,
    		if (strcmp(codice, red)==0) tasto=XK_Tab;		//tasto ROSSO
@@ -820,16 +860,16 @@ void elabora(char *codice)
 				luncodicet9 = 0;
 				bzero(codicet9,30);
 				gtk_container_remove(GTK_CONTAINER(vbox), mylabel2);
-			mylabel2 = gtk_label_new (NULL);
-			gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
-			gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
-			gtk_widget_show (mylabel2);
-			gdk_window_process_all_updates ();
+				mylabel2 = gtk_label_new (NULL);
+				gtk_label_set_text (GTK_LABEL (mylabel2),"T9 attivo");
+				gtk_container_add(GTK_CONTAINER(vbox), mylabel2);
+				gtk_widget_show (mylabel2);
+				gdk_window_process_all_updates ();
 
 		
-		XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
-		XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
-		gdk_window_process_all_updates ();
+				XWarpPointer(display, None, None, 0, 0, 0, 0, -10000,-10000);
+				XWarpPointer(display, None, None, 0, 0, 0, 0, 90, 0);
+				gdk_window_process_all_updates ();
 
 			}
 		}
@@ -898,6 +938,8 @@ void elabora(char *codice)
 		int revert;
 		XGetInputFocus(display, &winFocus, &revert);
 
+		
+		//TASTO**************************************************************************
 		// Send a fake key press event to the window.
 		XKeyEvent event = createKeyEvent(display, winFocus, winRoot, true, tasto, 0);
 		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
@@ -905,8 +947,40 @@ void elabora(char *codice)
 		// Send a fake key release event to the window.
 		event = createKeyEvent(display, winFocus, winRoot, false, tasto, 0);
 		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
+		//*******************************************************************************
 
 
+		//TASTO 1************************************************************************
+		// Send a fake key press event to the window.
+		XKeyEvent event1 = createKeyEvent(display, winFocus, winRoot, true, tasto1, 1);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event1);
+
+		// Send a fake key release event to the window.
+		event1 = createKeyEvent(display, winFocus, winRoot, false, tasto1, 1);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event1);
+		//*******************************************************************************
+
+
+		//TASTO 2************************************************************************
+		// Send a fake key press event to the window.
+		XKeyEvent event2 = createKeyEvent(display, winFocus, winRoot, true, tasto2, XK_Shift_L);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event2);
+
+		// Send a fake key release event to the window.
+		event2 = createKeyEvent(display, winFocus, winRoot, false, tasto2, XK_Shift_L);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event2);
+		//*******************************************************************************
+
+
+		//TASTO 3************************************************************************
+		// Send a fake key press event to the window.
+		XKeyEvent event3 = createKeyEvent(display, winFocus, winRoot, true, tasto3, XK_Shift_R);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event3);
+
+		// Send a fake key release event to the window.
+		event3 = createKeyEvent(display, winFocus, winRoot, false, tasto3, XK_Shift_R);
+		XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event3);
+		//*******************************************************************************
        	}  
 
 	XCloseDisplay(display);
@@ -1074,6 +1148,17 @@ int main( int argc, char *argv[])
 		gchar           *string;   
 		sprintf(buffer, "%d", i);
 		label=gtk_label_new(buffer);
+
+//*************************************************************************************
+//http://people.gnome.org/~federico/misc/gtk-drawing-model/index.html#window-no-window-widgets
+//Problema nelle versioni superiori alla 9.04 dell'aggiornamento delle widgets
+		GTK_WIDGET_UNSET_FLAGS (label, GTK_DOUBLE_BUFFERED);
+
+
+//*************************************************************************************
+
+
+
 		list_item=gtk_list_item_new();
 		gtk_container_add(GTK_CONTAINER(list_item), label);
 		gtk_widget_show(label);
