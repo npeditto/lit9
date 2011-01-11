@@ -215,7 +215,8 @@ void caricamatrice ()
 void parola_t9 ()
 {
 
-	if ((luncodicet9==0) && (statoiniziale==0)) return;
+	if ((luncodicet9==0) && (statoiniziale==0)) 
+		return;
 	statoiniziale=0;
 	int dim_parola = strlen(vetparole[indice].parola);
 	
@@ -226,7 +227,9 @@ void parola_t9 ()
 	int revert;
 	XGetInputFocus(display, &winFocus, &revert);
 	char word[dim_parola];
-	sprintf(word,"%s",vetparole[indice].parola);	
+	sprintf(word,"%s",vetparole[indice].parola);
+
+//-----------------------------------------------------------------	
 	if ((statopredittore ==1) && (flagparolaconpr==1))
 	{
 		bzero(word,dim_parola);
@@ -241,6 +244,8 @@ void parola_t9 ()
 		word[j]='\0';
 		dim_parola =j;
 	}
+//-----------------------------------------------------------------	
+
 	for (int kk=0; kk < dim_parola; kk++) 
 	{
 
@@ -751,6 +756,9 @@ void elabora(char *codice)
 		 	printf("\nerrore partenza thread");
 
 		}
+
+			//system("google-chrome");
+
 	}
 	//Tasti direzionali per gestire il puntatore del mouse
    	else if (strcmp(codice, down)==0) XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      //tasto DOWN
@@ -1055,8 +1063,8 @@ void *thfilet9 (void *arg)
 	rc = sqlite3_open("parole.sqlite", &db);
         if (rc)
  	{
- 	       printf("\nerrore database del T9");
-	       exit(EXIT_FAILURE);
+ 	       	printf("\nerrore database del T9");
+	       	exit(EXIT_FAILURE);
         }
         else
 	{
