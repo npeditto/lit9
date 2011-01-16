@@ -757,7 +757,6 @@ void elabora(char *codice)
 
 		}
 
-			//system("google-chrome");
 
 	}
 	//Tasti direzionali per gestire il puntatore del mouse
