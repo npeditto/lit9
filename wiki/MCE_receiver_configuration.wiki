@@ -1,4 +1,4 @@
-#summary USB UIRT receiver configuration
+#summary MCE receiver configuration
 #labels MCE,hardware.conf,receiver
 
 = USB UIRT receiver configuration =
