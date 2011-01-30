@@ -98,7 +98,6 @@ float speed=2.0;		//velocità di digitazione standard
 int wx=0;			//posizione finestra
 int wy=0;
 char dictionary[4];
-
 int pred=2;
 
 //------------------------------------------------------------------------
@@ -1734,7 +1733,7 @@ void elabora(char *codice)
 
 
 			case 2://T9 Mode.
-
+/*
 				gestionet9(tasto,display);
 
 				if(numparoletrovate==0) 
@@ -1766,6 +1765,19 @@ void elabora(char *codice)
 					array[0]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
 
 				}
+*/
+				for (int d=0;d<N;d++) {
+					array[d]->setStyleSheet( "background-color: white" );
+
+				}
+
+				gestionet9(tasto,display);
+
+				for (int d=0;d<N;d++) {
+					array[d]->setText(QString::fromUtf8(vetparole[d].parola));
+				}
+
+				array[0]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
 
 
 			break;
@@ -1963,9 +1975,9 @@ void elabora(char *codice)
 
 		if (strcmp(codice, videos)==0) tasto=XK_Tab;
 		else if (strcmp(codice, mytv)==0) {tasto=XK_Tab; modifier=1;}
-   		else if (strcmp(codice, enter)==0) tasto =XK_Return;    //Button Green
-   		else if (strcmp(codice, vol_plus)==0) tasto=XK_Up;      //Button Vol+
-   		else if (strcmp(codice, vol_minus)==0) tasto =XK_Down;  //Button Vol-
+   		else if (strcmp(codice, enter)==0) tasto =XK_Return;    	//Button Green
+   		else if (strcmp(codice, vol_plus)==0) tasto=XK_Page_Up;  	//Button Vol+
+   		else if (strcmp(codice, vol_minus)==0) tasto =XK_Page_Down;  	//Button Vol-
 
 
 
@@ -2176,6 +2188,10 @@ int main( int argc, char *argv[])
 	
 	QApplication app(argc, argv);
 
+	
+	//loading configuration
+	caricaconfig();
+
 	QVBoxLayout layout;
 	layout.setSpacing(2);
 
@@ -2231,9 +2247,7 @@ int main( int argc, char *argv[])
 
 
 	bzero(buf,50);
-	
-	//loading configuration
-	caricaconfig();
+
 
 	//loading matrix of characters
 	caricamatrice();

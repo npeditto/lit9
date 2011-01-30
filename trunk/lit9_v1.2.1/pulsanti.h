@@ -63,8 +63,8 @@ caps					7ba5
 #define tasto_8       	"ff07bf7"
 #define tasto_9       	"ff07bf6"
 #define tasto_0       	"ff07bff"
-#define vol_plus	"ff07bef"
-#define vol_minus	"ff07bee"
+#define vol_plus	"ff07bef"    //XK_Page_Up 
+#define vol_minus	"ff07bee"    //XK_Page_Down
 #define tasto_exit	"ff07bf1"
 #define mute_clear      "ff07bf5"
 #define Record        	"ff07be8"
@@ -77,9 +77,6 @@ caps					7ba5
 #define hash		"ff07be3"
 #define caps		"ff07ba5"	//teletext
 #endif
-
-
-
 
 
 
