@@ -1,5 +1,4 @@
 #labels MCE,hardware.conf,receiver
-
 =MCE Receiver Configuration=
 
 LIT9 was tested with a MCE receiver. In order to support it, you should configure the file /etc/lirc/hardware.conf as follows:
