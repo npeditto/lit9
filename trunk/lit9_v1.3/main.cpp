@@ -90,8 +90,6 @@
 
 //DICHIARAZIONE VARIABILI GLOBALI----------------------------------------------------------------------------------------------------------------
 
-void *thtel (void *arg);		//thread per irw
-
 int flagcaricat9;
 
 //----da configurare------------------------------------------------------
@@ -113,6 +111,8 @@ int numparoletrovate;	//parole trovate nel DB dal T9
 int luncodicet9=0;
 char codicet9[30];
 int modifier=0;         //modificatore per i vari livelli della tastiera (caratteri accentati, maiuscoli, caratteri extra, etc...)
+int modi=0;
+
 
 sqlite3 *db;
 sqlite3_stmt *stmt;
@@ -125,7 +125,7 @@ int refresh=1;
 //global declaration for QT-------------------------------------
 
 QLabel *array[N];
-
+	
 QLabel *lbstatus;
 
 QLabel *lbmotion;
@@ -265,12 +265,13 @@ void caricaconfig(){
 
 
 //Open browser thread
-void *apribrowser(void *arg){
+void *apribrowser(void*){
 
         system("firefox");
  	//system("google-chrome");
 	
 }
+
 
 
 //Function to transfer words from GUI to window with the focus
@@ -343,36 +344,19 @@ void invio_parola(Display* display){
 			char  *let;
 			let = (char*)malloc(2*sizeof(char));
 			sprintf(let,"%c",word[kk]);
-
-
-			/*
-			char s[3];
-			sprintf(s,"à");
-			if (strcmp(let, "à")==0){
-
-
-				printf("ciaoooooooooooo");fflush(stdout);
-
-				premitasto(display, winFocus, winRoot, XK_agrave, 0);
-
-			}
-
-			else{
-			*/
 			
 				if(lock==1)
 					premitasto(display, winFocus, winRoot, XStringToKeysym(let),1);
 				if(lock==0)
 					premitasto(display, winFocus, winRoot, XStringToKeysym(let),0);
 
-			//}
 
 		}
 
-	}//close else
+	}
 
 
-	printf("\n");
+	//printf("\n");
 
 
 	if(stato==2){		//for T9 mode
@@ -389,9 +373,15 @@ void invio_parola(Display* display){
 		sprintf (query, "update globale set frequenza =%d where parola =\'%s\';",vetparole[indice].frequenza,vetparole[indice].parola);
 		//else sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',1);",codicet9,vetparole[indice].parola);
 
-		printf("\n%s\n",query);
+		//printf("\n%s\n",query);
 
 		int  retval = sqlite3_exec(db,query,0,0,0);
+
+		if(retval)
+		{
+			printf("\nDatabase Error!\n");
+			return;
+		}
 
 
 	}
@@ -410,7 +400,7 @@ void invio_parola(Display* display){
 
 
 //T9 algoritm for text prediction (sqlite based)
-void gestionet9 (int tasto, Display* display){
+void gestionet9 (int tasto){
 
 
 	numparoletrovate=0;
@@ -492,7 +482,7 @@ void gestionet9 (int tasto, Display* display){
 				}				
 				else if(lock==1 && maiu_min==1)
 				{
-					char minuscolo, maiuscolo;
+					char minuscolo=0, maiuscolo=0;
 					int SCARTO = 32;                                      			/*1*/
 					int lun_minuscolo=0;
 					int num=0;
@@ -626,7 +616,7 @@ void predire(){
 				}				
 				else if(lock==1 && maiu_min==1)
 				{
-					char minuscolo, maiuscolo;
+					char minuscolo=0, maiuscolo=0;
 					int SCARTO = 32;                                      			/*1*/
 					int lun_minuscolo=0;
 					int num=0;
@@ -1349,17 +1339,6 @@ void caricamatrice (){
 
 }
 
-/*
-//MAIN FUNCTION
-void elabora(char *codice)
-{
-
-
-
-
-}
-
-*/
 
 
 
@@ -1367,14 +1346,9 @@ void elabora(char *codice)
 
 
 
-
-
-
-
-
-void MyThread::run(void){
 //Thread IRW
-//void *thtel(void *arg){
+void MyThread::run(void){
+
 
   	printf("\nIRW started!\n");
 
@@ -1427,955 +1401,950 @@ void MyThread::run(void){
 
                 //elabora(cod);
 
-		//emit received(QString("HELLO"),0);
+
+		Display *display = XOpenDisplay(0);
+
+		if(display == NULL) return;
 
 
+		//BUTTON YELLOW TO ACTIVATE T9 MODE
+		if (strcmp(cod, yellow)==0){
+
+			if(t==0){
+				t=1;
+				emit received(QString::fromUtf8(""),0,4);
+
+			}
+
+			printf("\nT9 ON\n");
+
+			stato=2;
+
+			bzero(codicet9,30);
+			predizione=0;
+
+			if(lock==1)
+
+				lbstatus->setText("Status: T9 ABC");
 
 
+			else if(lock==0)
 
+				lbstatus->setText("Status: T9 abc");
 
-
-
-	Display *display = XOpenDisplay(0);
-
-	if(display == NULL) return;
-
-
-	//BUTTON YELLOW TO ACTIVATE T9 MODE
-	if (strcmp(cod, yellow)==0){
-
-		if(t==0){
-			t=1;
-			emit received(QString::fromUtf8(""),0,4);
 
 		}
 
-		printf("\nT9 ON\n");
-
-		stato=2;
-
-		bzero(codicet9,30);
-
-		if(lock==1)
-
-			lbstatus->setText("Status: T9 ABC");
+		//BUTTON RED TO ACTIVATE SELECTIVE MODE
+		else if (strcmp(cod, red)==0){
 
 
-		else if(lock==0)
+			if(t==0){
+				t=1;
+				emit received(QString::fromUtf8(""),0,4);
 
-			lbstatus->setText("Status: T9 abc");
-
-
-	}
-
-	//BUTTON RED TO ACTIVATE SELECTIVE MODE
-	else if (strcmp(cod, red)==0){
+			}
 
 
-		if(t==0){
-			t=1;
-			emit received(QString::fromUtf8(""),0,4);
+			printf("\nSelective\n");
 
-		}
-
-
-		printf("\nSelective\n");
-
-		stato=1;
+			stato=1;
 		
-		bzero(codicet9,30);
+			bzero(codicet9,30);
+			predizione=0;
 
-		if(lock==1)
+			if(lock==1)
 
-			lbstatus->setText("Status: SELECTIVE");
-
-
-		else if(lock==0)
-
-			lbstatus->setText("Status: Selective");
+				lbstatus->setText("Status: SELECTIVE");
 
 
+			else if(lock==0)
+
+				lbstatus->setText("Status: Selective");
 
 
-	}
 
-	//BUTTON GREEN TO ACTIVATE STANDARD MODE
-	else if (strcmp(cod, green)==0){
-
-
-		if(t==0){
-			t=1;
-			emit received(QString::fromUtf8(""),0,4);
 
 		}
 
-		printf("\nStandard\n");
-
-		stato=3;
-
-		bzero(codicet9,30);
-
-		if(lock==1)
-
-			lbstatus->setText("Status: ABC");
+		//BUTTON GREEN TO ACTIVATE STANDARD MODE
+		else if (strcmp(cod, green)==0){
 
 
-		else if(lock==0)
+			if(t==0){
+				t=1;
+				emit received(QString::fromUtf8(""),0,4);
 
-			lbstatus->setText("Status: abc");
+			}
+
+			printf("\nStandard\n");
+
+			stato=3;
+
+			bzero(codicet9,30);
+			predizione=1;
+
+			if(lock==1)
+
+				lbstatus->setText("Status: ABC");
 
 
-	}
+			else if(lock==0)
 
-	//BUTTON BLUE TO ACTIVATE NUMERIC MODE
-	else if (strcmp(cod, blue)==0){
+				lbstatus->setText("Status: abc");
 
-
-
-		if(t==1){
-			t=0;
-			emit received(QString::fromUtf8(""),0,5);
 
 		}
+
+		//BUTTON BLUE TO ACTIVATE NUMERIC MODE
+		else if (strcmp(cod, blue)==0){
+
+
+
+			if(t==1){
+				t=0;
+				emit received(QString::fromUtf8(""),0,5);
+
+			}
 
 		
-		stato=4;
+			stato=4;
 
-		printf("\nNumeric\n");
+			printf("\nNumeric\n");
 
-		bzero(codicet9,30);
+			bzero(codicet9,30);
 
-		lbstatus->setText("Status: Numeric");
+			lbstatus->setText("Status: Numeric");
 
-		//tray->showMessage ( QString("LiT9"), QString("Nmeric mode"), tray->Information, 3000 );
-
-
-	}
+			//tray->showMessage ( QString("LiT9"), QString("Nmeric mode"), tray->Information, 3000 );
 
 
-	//BUTTON POWER TO SHUT DOWN LIT9
-   	else  if (strcmp(cod, power)==0) { 
+		}
+
+
+		//BUTTON POWER TO SHUT DOWN LIT9
+	   	else  if (strcmp(cod, power)==0) { 
 		
-		printf("\nLiT9 stop.\n\n");
+			printf("\nLiT9 stop.\n\n");
 
-		emit received(QString::fromUtf8(""),0,6);
-
-
-	}
-
-	//BUTTONS ARROW TO MOVE MOUSE AND MOVE CURSOR
-   	else if (strcmp(cod, down)==0) {
-		if(nav==0)
-			XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      //tasto DOWN
-		else if(nav==1)
-			tasto=XK_Down;
-
-	}
-   	else if (strcmp(cod, up)==0) {
-		if(nav==0)
-			XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo*(-1));   //tasto UP
-		else if(nav==1)
-			tasto=XK_Up;
-	}
+			emit received(QString::fromUtf8(""),0,6);
 
 
-   	else if (strcmp(cod, right)==0) {
-		if(nav==0)
-			XWarpPointer(display, None, None, 0, 0, 0, 0, passo, 0);    //tasto RIGHT
-		else if(nav==1)
-			tasto=XK_Right;
-	}
+		}
+
+		//BUTTONS ARROW TO MOVE MOUSE AND MOVE CURSOR
+	   	else if (strcmp(cod, down)==0) {
+			if(nav==0)
+				XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      //tasto DOWN
+			else if(nav==1)
+				tasto=XK_Down;
+
+		}
+	   	else if (strcmp(cod, up)==0) {
+			if(nav==0)
+				XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo*(-1));   //tasto UP
+			else if(nav==1)
+				tasto=XK_Up;
+		}
 
 
+	   	else if (strcmp(cod, right)==0) {
+			if(nav==0)
+				XWarpPointer(display, None, None, 0, 0, 0, 0, passo, 0);    //tasto RIGHT
+			else if(nav==1)
+				tasto=XK_Right;
+		}
 
-   	else if (strcmp(cod, left)==0) {
-		if(nav==0)
-			XWarpPointer(display, None, None, 0, 0, 0, 0, passo*(-1),0); //tasto LEFT
-		else if(nav==1)
-			tasto=XK_Left;
-	}
 
-/*
-	else if (strcmp(cod, music)==0)
-	{
-		tasto=XK_Tab;
-		modifier=XK_Alt_L;
+	   	else if (strcmp(cod, left)==0) {
+			if(nav==0)
+				XWarpPointer(display, None, None, 0, 0, 0, 0, passo*(-1),0); //tasto LEFT
+			else if(nav==1)
+				tasto=XK_Left;
+		}
+
+
+		else if (strcmp(cod, music)==0)
+		{
+			tasto=XK_ISO_Left_Tab;
+			modi=XK_Alt_L;
 								
-	}
-
-*/
-
-	else if (strcmp(cod, guide)==0){
-
-		if(nav==1){	
-			nav=0;	//mouse mode
-			emit received(QString::fromUtf8("Motion Mode: Mouse"),0,7);
-		}
-		else if(nav==0)	{
-			nav=1;	//arrows mode
-			emit received(QString::fromUtf8("Motion Mode: Arrows"),0,7);
 		}
 
-	}
+
+		else if (strcmp(cod, guide)==0){
+
+			if(nav==1){	
+				nav=0;	//mouse mode	
+				emit received(QString::fromUtf8("Motion Mode: Mouse"),0,7);
+			}
+			else if(nav==0)	{
+				nav=1;	//arrows mode
+				emit received(QString::fromUtf8("Motion Mode: Arrows"),0,7);
+			}
+
+		}
 
 
-	//BUTTON LOCK
-	else if (strcmp(cod, caps)==0){
+		//BUTTON LOCK
+		else if (strcmp(cod, caps)==0){
 
-		if(lock==1){
+			if(lock==1){
 			
-			lock=0;
+				lock=0;
 
-			if(stato==1)
-					lbstatus->setText("Status: Selective");
-					//***********************************************************************************
-					if(maiu_min==1)
-						manuale(tasto);
-					//***********************************************************************************
-			if(stato==2)
-					lbstatus->setText("Status: T9 abc");
-			if(stato==3)
-					lbstatus->setText("Status: abc");
+				if(stato==1)
+						lbstatus->setText("Status: Selective");
+						//***********************************************************************************
+						if(maiu_min==1)
+							manuale(tasto);
+						//***********************************************************************************
+				if(stato==2)
+						lbstatus->setText("Status: T9 abc");
+				if(stato==3)
+						lbstatus->setText("Status: abc");
 
 
-		}
-		else if(lock==0){
+			}
+			else if(lock==0){
 
-			lock=1;
+				lock=1;
 
-			if(stato==1)
-					lbstatus->setText("Status: SELECTIVE");
-					//***********************************************************************************
-					if(maiu_min==1)
-						manuale(tasto);
-					//***********************************************************************************
+				if(stato==1)
+						lbstatus->setText("Status: SELECTIVE");
+						//***********************************************************************************
+						if(maiu_min==1)
+							manuale(tasto);
+						//***********************************************************************************
 
-			if(stato==2)
-					lbstatus->setText("Status: T9 ABC");
-			if(stato==3)
-					lbstatus->setText("Status: ABC");
+				if(stato==2)
+						lbstatus->setText("Status: T9 ABC");
+				if(stato==3)
+						lbstatus->setText("Status: ABC");
 
-		}
+			}
 
 			
 
-	}
-
-
-	//TRAY-ICON
-    	else if (strcmp(cod, Record)==0){
-
-
-		if (t==0){
-
-                	printf("Show window.\n");
-
-			emit received(QString::fromUtf8(""),0,4);
-
-			t=1;
-
-		}
-		else{
-
-                	printf("Hide window.\n");
-
-			emit received(QString::fromUtf8(""),0,5);
-
-			t=0;
-
 		}
 
 
-	}
+		//TRAY-ICON
+	    	else if (strcmp(cod, Record)==0){
 
 
-	//BUTTON CH+ and CH- to select items into the GUI
-   	else if (strcmp(cod, ch_minus)==0)
-   	{
+			if (t==0){
 
-		if(homepage==0){
+		        	printf("Show window.\n");
 
-			if (indice==(N-1)){
-				
-				emit received(QString::fromUtf8(""),indice,2);
-				emit received(QString::fromUtf8(""),0,3);
+				emit received(QString::fromUtf8(""),0,4);
 
-				indice=0;
+				t=1;
+
 			}
 			else{
-				indice=indice+1;
-				emit received(QString::fromUtf8(""),indice-1,2);
-				emit received(QString::fromUtf8(""),indice,3);
 
+		        	printf("Hide window.\n");
+
+				emit received(QString::fromUtf8(""),0,5);
+
+				t=0;
+
+			}
+
+
+		}
+
+
+		//BUTTON CH+ and CH- to select items into the GUI
+	   	else if (strcmp(cod, ch_minus)==0)
+	   	{
+
+			if(homepage==0){
+
+				if (indice==(N-1)){
+				
+					emit received(QString::fromUtf8(""),indice,2);
+					emit received(QString::fromUtf8(""),0,3);
+
+					indice=0;
+				}
+				else{
+					indice=indice+1;
+					emit received(QString::fromUtf8(""),indice-1,2);
+					emit received(QString::fromUtf8(""),indice,3);
+
+
+				}
+
+			}
+
+
+	   	}
+	   	else  if (strcmp(cod, ch_plus)==0)
+	   	{
+
+			if(homepage==0){
+		       		if (indice==0){
+					indice=N-1;
+					emit received(QString::fromUtf8(""),0,2);
+					emit received(QString::fromUtf8(""),indice,3);
+
+				}
+		       		else{
+					indice = indice-1;
+					emit received(QString::fromUtf8(""),indice+1,2);
+					emit received(QString::fromUtf8(""),indice,3);
+
+				}
+			}
+
+	   	}
+
+
+
+		//BUTTON "Home" to start thread of browser
+	   	else  if (strcmp(cod, home)==0)
+		{
+			int res;
+			pthread_t tel_thread;
+			res = pthread_create(&tel_thread, NULL, apribrowser, NULL);
+			if (res != 0) {
+				exit(EXIT_FAILURE);
+			 	printf("\nStart thread error!\n");
 
 			}
 
 		}
 
 
-   	}
-   	else  if (strcmp(cod, ch_plus)==0)
-   	{
+		//BUTTON TO SEND SELECTED WORD ON GUI TO WINDOW WITH FOCUS
+		else if (strcmp(cod, tasto_exit)==0) { //BUTTON MUTE
 
-		if(homepage==0){
-	       		if (indice==0){
-				indice=N-1;
-				emit received(QString::fromUtf8(""),0,2);
-				emit received(QString::fromUtf8(""),indice,3);
+			if(homepage==0){
+
+				if (predizione==1 && strlen(buf) > 0){
+
+					Window winRoot = XDefaultRootWindow(display);
+					Window winFocus;
+					int revert;
+					XGetInputFocus(display, &winFocus, &revert);
+
+					for (int g=0; g<strlen(vetparole[indice].parola) ;g++) 
+						premitasto(display, winFocus, winRoot,XK_BackSpace,modifier);
+
+				}
+
+				invio_parola(display);
+
+				if (predizione==1)
+				{		
+					bzero(buf,50);
+			
+					cont_char=0;
+				}
 
 			}
-	       		else{
-				indice = indice-1;
-				emit received(QString::fromUtf8(""),indice+1,2);
-				emit received(QString::fromUtf8(""),indice,3);
-
-			}
-		}
-
-   	}
-
-
-
-	//BUTTON "Home" to start thread of browser
-   	else  if (strcmp(cod, home)==0)
-	{
-		int res;
-		pthread_t tel_thread;
-		res = pthread_create(&tel_thread, NULL, apribrowser, NULL);
-		if (res != 0) {
-			exit(EXIT_FAILURE);
-		 	printf("\nStart thread error!\n");
 
 		}
 
-	}
 
 
-	//BUTTON TO SEND SELECTED WORD ON GUI TO WINDOW WITH FOCUS
-	else if (strcmp(cod, tasto_exit)==0) { //BUTTON MUTE
+		//Button "OK" -> mouse left click
+	   	else if (strcmp(cod, ok)==0)
+	   	{
 
-		if(homepage==0){
-			if (predizione==1 && strlen(buf) > 0){
+
+			XEvent event;
+			memset(&event, 0x00, sizeof(event));
+			event.type = ButtonPress;
+			event.xbutton.button = 1;
+			event.xbutton.same_screen = True;
+			XQueryPointer(display, RootWindow(display, DefaultScreen(display)), &event.xbutton.root, &event.xbutton.window, 				&event.xbutton.x_root,&event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+			event.xbutton.subwindow = event.xbutton.window;
+			while(event.xbutton.subwindow)
+			{
+		        	event.xbutton.window = event.xbutton.subwindow;
+		        	XQueryPointer(display, event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow, &event.xbutton.x_root, 					&event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+			}
+			XSendEvent(display, PointerWindow, True, 0xfff, &event);
+			XFlush(display);
+
+			usleep(100000);
+
+			event.type = ButtonRelease;
+			event.xbutton.state = 0x100;
+			XSendEvent(display, PointerWindow, True, 0xfff, &event);
+			XFlush(display);
+
+			//XSetInputFocus(display, PointerRoot ,PointerRoot, CurrentTime);
+
+
+		}
+
+
+
+		//ALL FUNCTIONS ASSOCIATED TO THE PRESSURE OF A NUMERIC BUTTON
+		else if ( (strcmp(cod, tasto_1)==0 && stato==4) || strcmp(cod, tasto_2)==0 ||  strcmp(cod, tasto_3)==0 || strcmp(cod, tasto_4)==0 || strcmp(cod, tasto_5)==0 || strcmp(cod, tasto_6)==0 || strcmp(cod, tasto_7)==0 || strcmp(cod, tasto_8)==0 || strcmp(cod, tasto_9)==0) {
+
+			homepage=0;
+
+			if(firsttime==1){
+
+
+				firsttime=0;
+
+				array[0]->setAlignment(Qt::AlignLeft);
+				array[0]->setFont(QFont("Verdana",10));
+
+				QPalette palette;
+				QBrush brush(QColor(0, 0, 0, 255));
+				//brush.setStyle(Qt::SolidPattern);
+				palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
+				palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
+
+				for (int d=1;d<N;d++) {
+					array[d]->setFont(QFont("Verdana",10));
+					array[d]->setPalette(palette);
+				}
+
+
+			}
+
+			// se non ho premuto un tasto o se si tratta di un tasto numerico
+			     if (strcmp(cod, tasto_1)==0) tasto=1;
+			else if (strcmp(cod, tasto_2)==0) tasto=2;
+			else if (strcmp(cod, tasto_3)==0) tasto=3;
+			else if (strcmp(cod, tasto_4)==0) tasto=4;
+			else if (strcmp(cod, tasto_5)==0) tasto=5;
+			else if (strcmp(cod, tasto_6)==0) tasto=6;
+			else if (strcmp(cod, tasto_7)==0) tasto=7;
+			else if (strcmp(cod, tasto_8)==0) tasto=8;
+			else if (strcmp(cod, tasto_9)==0) tasto=9;
+
+
+		
+
+			switch(stato){
+
+				case 1://SELECTIVE Mode. 
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(""),d,2);
+
+				
+					manuale(tasto);
+
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+				
+					emit received(QString::fromUtf8(""),0,3);
+
+
+				break;
+
+
+				case 2://T9 Mode.
+	/*
+					gestionet9(tasto);
+
+					if(numparoletrovate==0 && refresh==1) 
+					{
+						refresh=0;
+						for (int d=0;d<N;d++) {
+							array[d]->setStyleSheet( "background-color: white" );
+						}
+						for (int d=0;d<N;d++) {
+							array[d]->setText(QString(""));
+						}
+					}
+					else if(numparoletrovate > 0)
+						refresh=1;
+
+
+
+					if(refresh){
+
+
+						for (int d=0;d<N;d++) {
+							array[d]->setStyleSheet( "background-color: white" );
+						}
+
+
+						for (int d=0;d<N;d++) {
+							array[d]->setText(QString::fromUtf8(vetparole[d].parola));
+						}
+
+						array[0]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
+
+					}
+	*/
+
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(""),d,2);
+
+				
+
+					gestionet9(tasto);
+
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+				
+					emit received(QString::fromUtf8(""),0,3);
+
+
+
+				break;
+
+
+				case 3://STANDARD with Prediction Mode.
+
+
+					classico(tasto,display);
+
+
+
+					if (predizione==1 && cont_char>pred){
+
+						predire();
+
+						if(numparoletrovate==0 && refresh==1) 
+						{
+							refresh=0;
+
+							for (int d=0;d<N;d++) 
+								emit received(QString::fromUtf8(""),d,2);
+
+							for (int d=0;d<N;d++) 
+								emit received(QString::fromUtf8(""),d,1);
+
+						}
+						else if(numparoletrovate > 0)
+							refresh=1;
+					
+					
+					}
+
+					if(refresh){
+
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(""),d,2);
+					
+
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+					
+
+						emit received(QString::fromUtf8(""),0,3);
+
+					}
+	
+
+		/*			
+
+					//if (predizione==1 && cont_char>pred)
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(""),d,2);
+
+		
+
+
+					classico(tasto,display);
+
+					if (predizione==1 && cont_char>pred)
+						predire();
+		
+				
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+
+
+					emit received(QString::fromUtf8(""),0,3);
+
+	*/
+		
+
+
+				break;
+
+				case 4://NUMERIC Mode
+				
+					numerico(tasto);
+				break;
+
+			}
+
+		}
+
+
+		else if (strcmp(cod, tasto_1)==0) {
+
+			tasto=1;
+
+			homepage=0;
+
+			if(firsttime==1){
+
+
+				firsttime=0;
+
+				array[0]->setAlignment(Qt::AlignLeft);
+				array[0]->setFont(QFont("Verdana",10));
+
+				QPalette palette;
+				QBrush brush(QColor(0, 0, 0, 255));
+				//brush.setStyle(Qt::SolidPattern);
+				palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
+				palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
+
+				for (int d=1;d<N;d++) {
+					array[d]->setFont(QFont("Verdana",10));
+					array[d]->setPalette(palette);
+				}
+
+
+			}
+
+
+			if(stato==1){
+
+				for (int d=0;d<N;d++) 
+					emit received(QString::fromUtf8(""),d,2);
+			
+
+				manuale(tasto);
+
+				for (int d=0;d<N;d++) 
+					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+				
+
+				emit received(QString::fromUtf8(""),0,3);
+
+			
+			}
+			else
+				classico(tasto,display);
+
+
+
+		}
+
+		else if (strcmp(cod, star)==0 ) {
+
+			tasto=42;
+
+			int d=0;
+
+			if(stato==1){
+
+				for (d=0;d<N;d++) 
+					emit received(QString::fromUtf8(""),d,2);
+			
+
+				manuale(tasto);
+
+				for (d=0;d<N;d++)
+					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+			
+
+				emit received(QString::fromUtf8(""),0,3);
+
+			}
+			else
+				classico(tasto,display);
+
+
+
+		}
+
+		else if (strcmp(cod, hash)==0 ) {
+
+			tasto=163;
+
+
+			int d=0;
+
+			if(stato==1){
+
+				for (d=0;d<N;d++) 
+					emit received(QString::fromUtf8(""),d,2);
+			
+
+				manuale(tasto);
+
+				for (d=0;d<N;d++)
+					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+			
+
+				emit received(QString::fromUtf8(""),0,3);
+
+			}
+			else
+				classico(tasto,display);
+
+
+
+		}
+
+
+
+		//Buttons for computer interactions: TAB and BACK_TAB ;BACKSPACE; ENTER; PAG_UP and PAG_DOWN; etc...
+		else {
+
+			if (strcmp(cod, videos)==0) tasto=XK_Tab;
+			else if (strcmp(cod, mytv)==0) {tasto=XK_Tab; modifier=1;}
+	   		else if (strcmp(cod, enter)==0) tasto =XK_Return;    	//Button Green
+			else if (strcmp(cod, vol_plus)==0) tasto=XK_Page_Up;  	//Button Vol+
+	   		else if (strcmp(cod, vol_minus)==0) tasto =XK_Page_Down;  	//Button Vol-
+
+
+		
+			//Button space.
+	  		else if (strcmp(cod, tasto_0)==0) {
+
+				if(stato==1 || stato==2) tasto = XK_space;
+
+				else if(stato==3) {
+
+					tasto = XK_space; 
+
+					bzero(buf,50);
+				
+					cont_char=0;
+
+				}
+
+		    		else if(stato==4) tasto = XK_0;
+
+
+			}
+
+
+			//Button backspace.
+	   		else if (strcmp(cod, mute_clear)==0)
+			{
+				if(stato==2 && luncodicet9>0){
+
+					//codicet9[luncodicet9]='\0';
+					codicet9[luncodicet9-1]='\0';
+					luncodicet9 --;
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(""),d,2);
+
+					if (luncodicet9>0){
+
+						numparoletrovate=0;
+					
+						char query[250];
+						bzero (query,250);
+
+
+						sprintf (query, "select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
+
+
+
+						int  retval = sqlite3_prepare_v2(db,query,-1,&stmt,0);
+
+						if(retval)
+						{
+							printf("\nDatabase Error!\n");
+							return;
+						}
+
+					    	// Read the number of rows fetched
+					    	int cols = sqlite3_column_count(stmt);
+
+
+					   	while(1)
+					    	{
+
+							// fetch a row's status
+							retval = sqlite3_step(stmt);
+
+							if(retval == SQLITE_DONE) break;
+
+							else if(retval == SQLITE_ROW)
+							{
+							    // SQLITE_ROW means fetched a row
+							    numparoletrovate=numparoletrovate+1;
+
+							    printf ("\n");
+
+							    // sqlite3_column_text returns a const void* , typecast it to const char*
+							    for(int col=0 ; col<cols-1;col++)
+							    {
+								const char *val = (const char*)sqlite3_column_text(stmt,col);
+								//printf("%s = %s\t",sqlite3_column_name(stmt,col),val);
+
+								if (col==0)
+								{
+									//to manage emphasis char
+									//******************************************************
+									if(lock==0)
+									{
+										printf ("%s",val);
+										sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
+
+
+									}				
+									else if(lock==1 && maiu_min==1)
+									{
+										char minuscolo=0, maiuscolo=0;
+										int SCARTO = 32;                                  /*1*/
+										int lun_minuscolo=0;
+										int num=0;
+			
+										lun_minuscolo=strlen(val);
+
+										for(num=0;num<lun_minuscolo;num++)
+										{
+											minuscolo=val[num]; 			  /*2*/
+											if (minuscolo>=97 && minuscolo<=122) 
+											{                          		  /*3*/
+												maiuscolo = minuscolo-SCARTO; 	  /*4*/
+										//printf("\n Rappresentazione maiuscola %c",maiuscolo /*5*/
+										//printf("\n Codice ASCII %d",maiuscolo);	/*6*/
+											}
+											else 
+											{
+												printf("\n Carattere non convertibile");
+												//maiuscolo= "X";
+											}
+
+											parola_maiuscolo[num]=maiuscolo;
+										}
+										printf ("%s",parola_maiuscolo);
+										sprintf(vetparole[numparoletrovate-1].parola,"%s",parola_maiuscolo);
+									}
+									//*****************************************************
+
+
+
+				
+
+								}
+								else
+								{
+									printf ("\tfr=%s",val);
+									vetparole[numparoletrovate-1].frequenza=atoi(val);
+								}
+
+							    }
+
+							}
+							else
+							{
+							    // Some error encountered
+							    printf("Query Error!\n");
+							    return;
+							}
+
+
+
+
+						}
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+
+						emit received(QString::fromUtf8(""),0,3);
+
+
+					}
+
+					
+
+				}
+
+
+
+
+				tasto = XK_BackSpace;
+			
+				if(predizione==1 && stato==3){
+
+					//int l=strlen(buf);
+					buf[cont_char]='\0';
+					buf[cont_char-1]='\0';
+					cont_char--;
+
+					for (int d=0;d<N;d++) 
+						emit received(QString::fromUtf8(""),d,2);
+
+					if (cont_char>pred){
+
+						predire();
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+
+					}
+					
+					
+
+				}
+
+
+
+
+
+
+			}
+
+
+			//BUTTON PRESS EVENT*************************************************************
+
+				// Get the root window for the current display.
+				Window winRoot = XDefaultRootWindow(display);
+
+				// Find the window which has the current keyboard focus.
+				Window winFocus;
+				int revert;
+				XGetInputFocus(display, &winFocus, &revert);
+
+				premitasto(display, winFocus, winRoot,tasto,modifier);
+
+
+			//*******************************************************************************
+
+			
+		}
+
+		if (strcmp(cod, mytv)==0) modifier=0;	//for backtab button
+
+
+		if(nav==1){												
 
 				Window winRoot = XDefaultRootWindow(display);
 				Window winFocus;
 				int revert;
 				XGetInputFocus(display, &winFocus, &revert);
-
-				for (int g=0;g<strlen(buf);g++) 
-					premitasto(display, winFocus, winRoot,XK_BackSpace,modifier);
-
-			}
-
-			invio_parola(display);
-
-			if (predizione==1)
-			{		
-				bzero(buf,50);
-			
-				cont_char=0;
-			}
-		}
-
-	}
-
-
-	//Button "OK" -> mouse left click
-   	else if (strcmp(cod, ok)==0)
-   	{
-
-
-        	XEvent event;
-        	memset(&event, 0x00, sizeof(event));
-        	event.type = ButtonPress;
-        	event.xbutton.button = 1;
-        	event.xbutton.same_screen = True;
-		XQueryPointer(display, RootWindow(display, DefaultScreen(display)), &event.xbutton.root, &event.xbutton.window, 				&event.xbutton.x_root,&event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-        	event.xbutton.subwindow = event.xbutton.window;
-        	while(event.xbutton.subwindow)
-        	{
-                	event.xbutton.window = event.xbutton.subwindow;
-                	XQueryPointer(display, event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow, &event.xbutton.x_root, 					&event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-        	}
-        	XSendEvent(display, PointerWindow, True, 0xfff, &event);
-        	XFlush(display);
-
-        	usleep(100000);
-
-        	event.type = ButtonRelease;
-        	event.xbutton.state = 0x100;
-        	XSendEvent(display, PointerWindow, True, 0xfff, &event);
-        	XFlush(display);
-
-		//XSetInputFocus(display, PointerRoot ,PointerRoot, CurrentTime);
-
-
-	}
-
-
-
-	//ALL FUNCTIONS ASSOCIATED TO THE PRESSURE OF A NUMERIC BUTTON
-	else if ( (strcmp(cod, tasto_1)==0 && stato==4) || strcmp(cod, tasto_2)==0 ||  strcmp(cod, tasto_3)==0 || strcmp(cod, tasto_4)==0 || strcmp(cod, tasto_5)==0 || strcmp(cod, tasto_6)==0 || strcmp(cod, tasto_7)==0 || strcmp(cod, tasto_8)==0 || strcmp(cod, tasto_9)==0) {
-
-		homepage=0;
-
-		if(firsttime==1){
-
-
-			firsttime=0;
-
-			array[0]->setAlignment(Qt::AlignLeft);
-			array[0]->setFont(QFont("Verdana",10));
-
-			QPalette palette;
-			QBrush brush(QColor(0, 0, 0, 255));
-			//brush.setStyle(Qt::SolidPattern);
-			palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
-			palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
-
-			for (int d=1;d<N;d++) {
-				array[d]->setFont(QFont("Verdana",10));
-				array[d]->setPalette(palette);
-			}
-
+				premitasto(display, winFocus, winRoot,tasto,modifier);
 
 		}
 
-		// se non ho premuto un tasto o se si tratta di un tasto numerico
-		     if (strcmp(cod, tasto_1)==0) tasto=1;
-		else if (strcmp(cod, tasto_2)==0) tasto=2;
-		else if (strcmp(cod, tasto_3)==0) tasto=3;
-		else if (strcmp(cod, tasto_4)==0) tasto=4;
-		else if (strcmp(cod, tasto_5)==0) tasto=5;
-		else if (strcmp(cod, tasto_6)==0) tasto=6;
-		else if (strcmp(cod, tasto_7)==0) tasto=7;
-		else if (strcmp(cod, tasto_8)==0) tasto=8;
-		else if (strcmp(cod, tasto_9)==0) tasto=9;
-
-
-		
-
-		switch(stato){
-
-			case 1://SELECTIVE Mode. 
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(""),d,2);
-
-				
-				manuale(tasto);
-
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-				
-				emit received(QString::fromUtf8(""),0,3);
-
-
-			break;
-
-
-			case 2://T9 Mode.
-/*
-				gestionet9(tasto,display);
-
-				if(numparoletrovate==0 && refresh==1) 
-				{
-					refresh=0;
-					for (int d=0;d<N;d++) {
-						array[d]->setStyleSheet( "background-color: white" );
-					}
-					for (int d=0;d<N;d++) {
-						array[d]->setText(QString(""));
-					}
-				}
-				else if(numparoletrovate > 0)
-					refresh=1;
-
-
-
-				if(refresh){
-
-
-					for (int d=0;d<N;d++) {
-						array[d]->setStyleSheet( "background-color: white" );
-					}
-
-
-					for (int d=0;d<N;d++) {
-						array[d]->setText(QString::fromUtf8(vetparole[d].parola));
-					}
-
-					array[0]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
-
-				}
-*/
-
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(""),d,2);
-
-				
-
-				gestionet9(tasto,display);
-
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-				
-				emit received(QString::fromUtf8(""),0,3);
-
-
-
-			break;
-
-
-			case 3://STANDARD with Prediction Mode.
-
-/*
-				classico(tasto,display);
-
-
-
-				if (predizione==1 && cont_char>pred){
-
-					predire();
-
-					if(numparoletrovate==0 && refresh==1) 
-					{
-						refresh=0;
-
-						for (int d=0;d<N;d++) 
-							array[d]->setStyleSheet( "background-color: white" );
-
-						for (int d=0;d<N;d++) 
-							array[d]->setText(QString(""));
-
-					}
-					else if(numparoletrovate > 0)
-						refresh=1;
-					
-					
-				}
-
-				if(refresh){
-
-
-					for (int d=0;d<N;d++) 
-						array[d]->setStyleSheet( "background-color: white" );
-					
-
-
-					for (int d=0;d<N;d++) 
-						array[d]->setText(QString::fromUtf8(vetparole[d].parola));
-					
-
-					array[0]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
-
-				}
-	*/
-
-				
-
-				//if (predizione==1 && cont_char>pred)
-					for (int d=0;d<N;d++) 
-						emit received(QString::fromUtf8(""),d,2);
-
-		
-
-
-				classico(tasto,display);
-
-				if (predizione==1 && cont_char>pred)
-					predire();
-		
-				
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-
-
-				emit received(QString::fromUtf8(""),0,3);
-
-
-		
-
-
-			break;
-
-			case 4://NUMERIC Mode
-				
-				numerico(tasto);
-			break;
-
-		}
-
-	}
-
-
-	else if (strcmp(cod, tasto_1)==0) {
-
-		tasto=1;
-
-		homepage=0;
-
-		if(firsttime==1){
-
-
-			firsttime=0;
-
-			array[0]->setAlignment(Qt::AlignLeft);
-			array[0]->setFont(QFont("Verdana",10));
-
-			QPalette palette;
-			QBrush brush(QColor(0, 0, 0, 255));
-			//brush.setStyle(Qt::SolidPattern);
-			palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
-			palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
-
-			for (int d=1;d<N;d++) {
-				array[d]->setFont(QFont("Verdana",10));
-				array[d]->setPalette(palette);
-			}
-
-
-		}
-
-
-		if(stato==1){
-
-			for (int d=0;d<N;d++) 
-				emit received(QString::fromUtf8(""),d,2);
-			
-
-			manuale(tasto);
-
-			for (int d=0;d<N;d++) 
-				emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-				
-
-			emit received(QString::fromUtf8(""),0,3);
-
-			
-		}
-		else
-			classico(tasto,display);
-
-
-
-	}
-
-	else if (strcmp(cod, star)==0 ) {
-
-		tasto=42;
-
-		int d=0;
-
-		if(stato==1){
-
-			for (d=0;d<N;d++) 
-				emit received(QString::fromUtf8(""),d,2);
-			
-
-			manuale(tasto);
-
-			for (d=0;d<N;d++)
-				emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-			
-
-			emit received(QString::fromUtf8(""),0,3);
-
-		}
-		else
-			classico(tasto,display);
-
-
-
-	}
-
-	else if (strcmp(cod, hash)==0 ) {
-
-		tasto=163;
-
-
-		int d=0;
-
-		if(stato==1){
-
-			for (d=0;d<N;d++) 
-				emit received(QString::fromUtf8(""),d,2);
-			
-
-			manuale(tasto);
-
-			for (d=0;d<N;d++)
-				emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-			
-
-			emit received(QString::fromUtf8(""),0,3);
-
-		}
-		else
-			classico(tasto,display);
-
-
-
-	}
-
-
-
-	//Buttons for computer interactions: TAB and BACK_TAB ;BACKSPACE; ENTER; PAG_UP and PAG_DOWN; etc...
-	else {
-
-		if (strcmp(cod, videos)==0) tasto=XK_Tab;
-		else if (strcmp(cod, mytv)==0) {tasto=XK_Tab; modifier=1;}
-   		else if (strcmp(cod, enter)==0) tasto =XK_Return;    	//Button Green
-		else if (strcmp(cod, vol_plus)==0) tasto=XK_Page_Up;  	//Button Vol+
-   		else if (strcmp(cod, vol_minus)==0) tasto =XK_Page_Down;  	//Button Vol-
-
-
-		
-		//Button space.
-  		else if (strcmp(cod, tasto_0)==0) {
-
-			if(stato==1 || stato==2) tasto = XK_space;
-
-			else if(stato==3) {
-
-				tasto = XK_space; 
-
-				bzero(buf,50);
-				
-				cont_char=0;
-
-			}
-
-            		else if(stato==4) tasto = XK_0;
-
-
-		}
-
-
-		//Button backspace.
-   		else if (strcmp(cod, mute_clear)==0)
-		{
-			if(stato==2 && luncodicet9>0){
-
-				//codicet9[luncodicet9]='\0';
-				codicet9[luncodicet9-1]='\0';
-				luncodicet9 --;
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(""),d,2);
-
-				if (luncodicet9>0){
-
-					numparoletrovate=0;
-					
-					char query[250];
-					bzero (query,250);
-
-
-					sprintf (query, "select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
-
-
-
-					int  retval = sqlite3_prepare_v2(db,query,-1,&stmt,0);
-
-					if(retval)
-					{
-						printf("\nDatabase Error!\n");
-						return;
-					}
-
-				    	// Read the number of rows fetched
-				    	int cols = sqlite3_column_count(stmt);
-
-
-				   	while(1)
-				    	{
-
-						// fetch a row's status
-						retval = sqlite3_step(stmt);
-
-						if(retval == SQLITE_DONE) break;
-
-						else if(retval == SQLITE_ROW)
-						{
-						    // SQLITE_ROW means fetched a row
-						    numparoletrovate=numparoletrovate+1;
-
-						    printf ("\n");
-
-						    // sqlite3_column_text returns a const void* , typecast it to const char*
-						    for(int col=0 ; col<cols-1;col++)
-						    {
-							const char *val = (const char*)sqlite3_column_text(stmt,col);
-							//printf("%s = %s\t",sqlite3_column_name(stmt,col),val);
-
-							if (col==0)
-							{
-								//to manage emphasis char
-								//******************************************************************************
-								if(lock==0)
-								{
-									printf ("%s",val);
-									sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
-
-
-								}				
-								else if(lock==1 && maiu_min==1)
-								{
-									char minuscolo, maiuscolo;
-									int SCARTO = 32;                                      			/*1*/
-									int lun_minuscolo=0;
-									int num=0;
-			
-									lun_minuscolo=strlen(val);
-
-									for(num=0;num<lun_minuscolo;num++)
-									{
-										minuscolo=val[num]; 						/*2*/
-										if (minuscolo>=97 && minuscolo<=122) 
-										{                          					/*3*/
-											maiuscolo = minuscolo-SCARTO; 			        /*4*/
-										//printf("\n Rappresentazione maiuscola %c",maiuscolo); 	/*5*/
-										//printf("\n Codice ASCII %d",maiuscolo);			/*6*/
-										}
-										else 
-										{
-											printf("\n Carattere non convertibile");
-											//maiuscolo= "X";
-										}
-
-										parola_maiuscolo[num]=maiuscolo;
-									}
-									printf ("%s",parola_maiuscolo);
-									sprintf(vetparole[numparoletrovate-1].parola,"%s",parola_maiuscolo);
-								}
-								//******************************************************************************
-
-
-
-				
-
-							}
-							else
-							{
-								printf ("\tfr=%s",val);
-								vetparole[numparoletrovate-1].frequenza=atoi(val);
-							}
-
-						    }
-
-						}
-						else
-						{
-						    // Some error encountered
-						    printf("Query Error!\n");
-						    return;
-						}
-
-
-
-
-					}
-
-					for (int d=0;d<N;d++) 
-						emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-
-					emit received(QString::fromUtf8(""),0,3);
-
-
-				}
-
-					
-
-			}
-
-
-
-
-			tasto = XK_BackSpace;
-			
-			if(predizione==1 && stato==3){
-
-				//int l=strlen(buf);
-				buf[cont_char]='\0';
-				buf[cont_char-1]='\0';
-				cont_char--;
-
-				for (int d=0;d<N;d++) 
-					emit received(QString::fromUtf8(""),d,2);
-
-				if (cont_char>pred){
-
-					predire();
-
-					for (int d=0;d<N;d++) 
-						emit received(QString::fromUtf8(vetparole[d].parola),d,1);
-
-				}
-					
-					
-
-			}
-
-
-
-
-
-
-		}
-
-
-		//BUTTON PRESS EVENT*************************************************************
-
-			// Get the root window for the current display.
-			Window winRoot = XDefaultRootWindow(display);
-
-			// Find the window which has the current keyboard focus.
-			Window winFocus;
-			int revert;
-			XGetInputFocus(display, &winFocus, &revert);
-
-			premitasto(display, winFocus, winRoot,tasto,modifier);
-
-
-		//*******************************************************************************
-
-			
-	}
-
-	if (strcmp(cod, mytv)==0) modifier=0;	//for backtab button
-
-
-	if(nav==1){												
-
+	
+		if (strcmp(cod, music)==0){
 			Window winRoot = XDefaultRootWindow(display);
 			Window winFocus;
 			int revert;
 			XGetInputFocus(display, &winFocus, &revert);
-			premitasto(display, winFocus, winRoot,tasto,modifier);
+			premitasto(display, winFocus, winRoot,tasto,modi);
+		}
+	
+
+		XCloseDisplay(display);
+
 
 	}
 
-	/*
-	if (strcmp(cod, music)==0){
-		Window winRoot = XDefaultRootWindow(display);
-		Window winFocus;
-		int revert;
-		XGetInputFocus(display, &winFocus, &revert);
-		premitasto(display, winFocus, winRoot,tasto,modifier);
-	}
-	*/
-
-	XCloseDisplay(display);
-
-
-
-
-   }
 
 }
 
