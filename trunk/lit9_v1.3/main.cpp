@@ -1353,7 +1353,7 @@ void MyThread::run(void){
   	printf("\nIRW started!\n");
 
  	int fd,i;
-        char buf[128];
+        char buf_thr[128];
 
         struct sockaddr_un addr;
         addr.sun_family=AF_UNIX;
@@ -1375,9 +1375,9 @@ void MyThread::run(void){
         for(;;)
 	{
 
-                bzero(buf,128);
+                bzero(buf_thr,128);
                 memset(cod,0,sizeof(cod));
-                i=read(fd,buf,128);
+                i=read(fd,buf_thr,128);
 
                 if(i==-1)  {
                         perror("read");
@@ -1388,16 +1388,16 @@ void MyThread::run(void){
 
                 j=0;
                 k=0;
-                lun=strlen(buf);
+                lun=strlen(buf_thr);
                 for (j=9;j<lun;j++)
                 {
-                        if (buf[j]==' ') break;
-                        cod[k]=buf[j];
+                        if (buf_thr[j]==' ') break;
+                        cod[k]=buf_thr[j];
                         k=k+1;
 
                 }
 
-                //printf("\nCodice:\t%s\nStringa restituita dal driver: \t%s\n",cod,buf);
+                //printf("\nCodice:\t%s\nStringa restituita dal driver: \t%s\n",cod,buf_thr);
 
                 //elabora(cod);
 
@@ -1566,12 +1566,14 @@ void MyThread::run(void){
 
 		else if (strcmp(cod, music)==0)
 		{
-			tasto=XK_ISO_Left_Tab;
+			printf("Prova Alt+Tab\n");			
+			//tasto=XK_ISO_Left_Tab;
+			tasto = XK_Tab;
 			modi=XK_Alt_L;
 								
 		}
 
-
+			
 		else if (strcmp(cod, guide)==0){
 
 			if(nav==1){	
@@ -2271,8 +2273,10 @@ void MyThread::run(void){
 				if(predizione==1 && stato==3){
 
 					//int l=strlen(buf);
+					//printf("Prima: %s\n",buf);
 					buf[cont_char]='\0';
 					buf[cont_char-1]='\0';
+					//printf("Dopo: %s\n",buf);
 					cont_char--;
 
 					for (int d=0;d<N;d++) 
