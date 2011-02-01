@@ -37,6 +37,7 @@ hash					7be3
 caps					7ba5
 guide					7bd9
 music					7bb8
+picture					7bb6
 ********************************************************************/
 
 #ifndef __pulsanti_h__
@@ -80,6 +81,7 @@ music					7bb8
 #define caps		"ff07ba5"	//teletext
 #define guide		"ff07bd9"
 #define music		"ff07bb8"
+#define picture		"ff07bb6"
 #endif
 
 

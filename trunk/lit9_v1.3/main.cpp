@@ -74,6 +74,8 @@
 #include <sqlite3.h>
 #include <ctype.h>
 #include <time.h>
+#include <wchar.h>
+
 
 
 #include "mythread.h"
@@ -121,6 +123,14 @@ sqlite3_stmt *stmt;
 int homepage=1;
 int firsttime=1;
 int refresh=1;
+int inserimento=0; 	//0->modalità di inserimento // 1->inserimento parola nel DB
+
+
+	
+
+
+wchar_t wcarattere[6];//per inserimento parola
+
 
 //global declaration for QT-------------------------------------
 
@@ -170,15 +180,7 @@ int maiu_min=0;  //attivare/disattivare modalità qt maiuscolo
 
 char buf[50];
 
-struct num_car {
-  int numero_seq;
-  char carattere_seq;
-};
-
-num_car sequenza[50];
 int cont_char=0;
-int preso=0;
-int count=0;
 int predizione=1;
 
 
@@ -267,7 +269,7 @@ void caricaconfig(){
 //Open browser thread
 void *apribrowser(void*){
 
-        system("firefox");
+       int sys = system("firefox");
  	//system("google-chrome");
 	
 }
@@ -542,6 +544,62 @@ void gestionet9 (int tasto){
     	printf ("\n");
 
 }
+
+
+
+
+void numerit9(char *parola)
+{
+
+	wcarattere[0]= 224;  //à = 224    0xE0
+	wcarattere[1]= 232;  //è = 232    0xE8
+	wcarattere[2]= 233;  //é = 233    0xE9
+	wcarattere[3]= 236;  //ì = 236    0xEC
+	wcarattere[4]= 242;  //ò = 242    0xF2
+	wcarattere[5]= 249;  //ù = 249    0xF9
+
+	bzero(codicet9,30);
+
+	int lunghezza=strlen(parola);		
+
+	//Associamo ai caratteri i tasti numerici del telecomando
+
+	for(int i=0; i<lunghezza; i++)
+	{
+
+		if( (parola[i]== 'a') || (parola[i]== 'b') || (parola[i]== 'c') || (parola[i]== (char)wcarattere[0]) )  //à
+			codicet9[i]='2';
+
+		else if( (parola[i]== 'd') || (parola[i]== 'e') || (parola[i]== 'f') || (parola[i]== (char)wcarattere[1]) || (parola[i]== (char)wcarattere[2]) ) //é, è
+			codicet9[i]='3';
+
+		else if( (parola[i]== 'g') || (parola[i]== 'h') || (parola[i]== 'i') || (parola[i]== (char)wcarattere[3]) )  //ì
+			codicet9[i]='4';
+
+		else if( (parola[i]== 'j') || (parola[i]== 'k') || (parola[i]== 'l') )
+			codicet9[i]='5';
+
+		else if( (parola[i]== 'm') || (parola[i]== 'n') || (parola[i]== 'o') || (parola[i]== (char)wcarattere[4]) )  //ò
+			codicet9[i]='6';
+	
+		else if( (parola[i]== 'p') || (parola[i]== 'q') || (parola[i]== 'r') || (parola[i]== 's') )
+			codicet9[i]='7';
+
+		else if( (parola[i]== 't') || (parola[i]== 'u') || (parola[i]== 'v') || (parola[i]== (char)wcarattere[5]) )  //ù
+			codicet9[i]='8';
+
+		else if( (parola[i]== 'w') || (parola[i]== 'x') || (parola[i]== 'y') || (parola[i]== 'z') )
+			codicet9[i]='9';
+
+		printf("%c",codicet9[i]);
+
+	}
+	
+	//return codice_t9
+
+
+}
+
 
 
 
@@ -1121,7 +1179,6 @@ void classico(int tasto, Display* display){
 
 	if (newtime - oldtime < speed && tasto==t_prec){
 		
-		preso=0;
 		y_c++;
 
 		if (y_c>0){
@@ -1137,7 +1194,6 @@ void classico(int tasto, Display* display){
 	}
 	else {
 
-		preso=1;
 		y_c=0;
 
 	}
@@ -1145,14 +1201,12 @@ void classico(int tasto, Display* display){
 
 	oldtime=newtime;
 	buf[cont_char]=carattere[x][y_c];
+
 	cont_char++;
 
 
 	t_prec=tasto;
 	sprintf(let,"%c",carattere[x][y_c]);
-	sequenza[count].numero_seq=preso;
-	sequenza[count].carattere_seq=carattere[x][y_c];
-	count++;
 	
 
 
@@ -1264,59 +1318,59 @@ void caricamatrice (){
         carattere[0][5] = XK_period; 		//for ":" with modifier=1
 		
 
-        carattere[1][0] = XK_A;
-        carattere[1][1] = XK_B;
-        carattere[1][2] = XK_C;
+        carattere[1][0] = XK_a;
+        carattere[1][1] = XK_b;
+        carattere[1][2] = XK_c;
         carattere[1][3] = XK_agrave;
         carattere[1][4] = XK_2;
 	carattere[1][5] = XK_space;		
 
-        carattere[2][0] = XK_D;
-        carattere[2][1] = XK_E;
-        carattere[2][2] = XK_F;
+        carattere[2][0] = XK_d;
+        carattere[2][1] = XK_e;
+        carattere[2][2] = XK_f;
         carattere[2][3] = XK_egrave;
         carattere[2][4] = XK_3;
 	carattere[2][5] = XK_space;		
 
-        carattere[3][0] = XK_G;
-        carattere[3][1] = XK_H;
-        carattere[3][2] = XK_I;
+        carattere[3][0] = XK_g;
+        carattere[3][1] = XK_h;
+        carattere[3][2] = XK_i;
         carattere[3][3] = XK_igrave;
         carattere[3][4] = XK_4;
         carattere[3][5] = XK_space;		
 
-        carattere[4][0] = XK_J;
-        carattere[4][1] = XK_K;
-        carattere[4][2] = XK_L;
+        carattere[4][0] = XK_j;
+        carattere[4][1] = XK_k;
+        carattere[4][2] = XK_l;
         carattere[4][3] = XK_5;
         carattere[4][4] = XK_space;		
         carattere[4][5] = XK_space;		
 
-        carattere[5][0] = XK_M;
-        carattere[5][1] = XK_N;
-        carattere[5][2] = XK_O;
+        carattere[5][0] = XK_m;
+        carattere[5][1] = XK_n;
+        carattere[5][2] = XK_o;
         carattere[5][3] = XK_ograve;
         carattere[5][4] = XK_6;
         carattere[5][5] = XK_space;		
 
-        carattere[6][0] = XK_P;
-        carattere[6][1] = XK_Q;
-        carattere[6][2] = XK_R;
-        carattere[6][3] = XK_S;
+        carattere[6][0] = XK_p;
+        carattere[6][1] = XK_q;
+        carattere[6][2] = XK_r;
+        carattere[6][3] = XK_s;
         carattere[6][4] = XK_7;
         carattere[6][5] = XK_space;		
 
-        carattere[7][0] = XK_T;
-        carattere[7][1] = XK_U;
-        carattere[7][2] = XK_V;
+        carattere[7][0] = XK_t;
+        carattere[7][1] = XK_u;
+        carattere[7][2] = XK_v;
         carattere[7][3] = XK_ugrave;
         carattere[7][4] = XK_8;
         carattere[7][5] = XK_space;		
 
-        carattere[8][0] = XK_W;
-        carattere[8][1] = XK_X;
-        carattere[8][2] = XK_Y;
-        carattere[8][3] = XK_Z;
+        carattere[8][0] = XK_w;
+        carattere[8][1] = XK_x;
+        carattere[8][2] = XK_y;
+        carattere[8][3] = XK_z;
         carattere[8][4] = XK_9;
         carattere[8][5] = XK_space;
 
@@ -1725,14 +1779,14 @@ void MyThread::run(void){
 
 			if(homepage==0){
 
-				if (predizione==1 && strlen(buf) > 0){
+				if (predizione==1 && cont_char > 0){
 
 					Window winRoot = XDefaultRootWindow(display);
 					Window winFocus;
 					int revert;
 					XGetInputFocus(display, &winFocus, &revert);
 
-					for (int g=0; g<strlen(vetparole[indice].parola) ;g++) 
+					for (int g=0; g<cont_char ;g++) 
 						premitasto(display, winFocus, winRoot,XK_BackSpace,modifier);
 
 				}
@@ -1781,6 +1835,75 @@ void MyThread::run(void){
 
 			//XSetInputFocus(display, PointerRoot ,PointerRoot, CurrentTime);
 
+
+		}
+
+
+		//
+	   	else if (strcmp(cod, picture)==0){
+
+			// 1 inserimento nel DB / 0 modalità inserimento	
+
+			//printf("\nInsert new word!\n");
+
+			if(inserimento==0){ //devo digitare una parola
+
+				cont_char=0;
+				bzero(buf,50);
+				printf("\nDigit new word:\n");
+				emit received(QString::fromUtf8("Digit new word"),0,8);
+				stato=3;
+				inserimento=1;
+				
+			}
+			else if(inserimento==1){ //inserisco la parola nel DB
+
+				
+				if(cont_char!=0){
+				
+					printf("\nWord convertion.\n");
+					printf("\n-T9 code genereted: ");
+					numerit9(buf);
+					printf("\n");
+				
+					char query[250];
+					bzero (query,250);
+
+					sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',10);",codicet9,buf);
+
+					int  retval = sqlite3_exec(db,query,0,0,0);
+
+					if(retval)
+					{
+						printf("\nDatabase Error! or Word duplicated into database!\n");
+						emit received(QString::fromUtf8("Word duplicated!"),0,8);
+						//return;
+					}
+					else{
+						printf("\nNew word inserted!\n");
+						emit received(QString::fromUtf8("New word inserted!"),0,8);
+
+					}
+
+					cont_char=0;
+					bzero(buf,50);
+					inserimento=0;
+
+
+
+				}
+				else{
+					printf("\nEmpty word!\n");
+					emit received(QString::fromUtf8("Empty word!"),0,8);
+					inserimento=0;
+
+				}
+
+		
+
+			}
+
+	
 
 		}
 
@@ -2363,7 +2486,8 @@ void MyThread::esegui(QString msg , int i, int mod)
 //mod=4 -> show
 //mod=5 -> hide
 //mod=6 -> exit
-//mod=7 -> label status motion 
+//mod=7 -> label motion 
+//mod=8 -> label status
 
 
 
@@ -2389,7 +2513,8 @@ if(mod==6)
 if(mod==7)
 	lbmotion->setText(msg);
 
-//if(mod==8) system("gedit ./config");
+if(mod==8) 
+	lbstatus->setText(msg);
 
 
 }
