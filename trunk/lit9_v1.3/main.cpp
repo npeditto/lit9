@@ -371,17 +371,22 @@ void invio_parola(Display* display){
 		char query[200];
 		bzero (query,200);
 
-		//if (vetparole[indice].frequenza>1)
+		
 		sprintf (query, "update globale set frequenza =%d where parola =\'%s\';",vetparole[indice].frequenza,vetparole[indice].parola);
-		//else sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',1);",codicet9,vetparole[indice].parola);
-
-		//printf("\n%s\n",query);
-
 		int  retval = sqlite3_exec(db,query,0,0,0);
 
 		if(retval)
 		{
-			printf("\nDatabase Error!\n");
+			printf("\nDatabase Error: update global table!\n");
+			return;
+		}
+		
+		sprintf (query, "update personale set frequenza =%d where parola =\'%s\';",vetparole[indice].frequenza,vetparole[indice].parola);
+		retval = sqlite3_exec(db,query,0,0,0);
+
+		if(retval)
+		{
+			printf("\nDatabase Error: update personal table!\n");
 			return;
 		}
 
@@ -433,7 +438,7 @@ void gestionet9 (int tasto){
 	bzero (query,250);
 
 
-	sprintf (query, "select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
+	sprintf (query, "select parola, frequenza, codice, lunghezza from personale where codice like \'%s%%\' union select parola, frequenza, codice, lunghezza from globale where codice like \'%s%%\' order by lunghezza asc, frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
 
 	//printf("\n%s\n",query);
 
@@ -518,7 +523,7 @@ void gestionet9 (int tasto){
 				
 
 			}
-			else
+			else if(col==1)
 			{
 				printf ("\tfr=%s",val);
 				vetparole[numparoletrovate-1].frequenza=atoi(val);
@@ -625,7 +630,7 @@ void predire(){
 	bzero (query,250);
 
 
-	sprintf (query, "select parola dist,frequenza, codice from personale where parola like \'%s%%\' union select parola dist,frequenza, codice from globale where parola like \'%s%%\' order by frequenza desc, parola asc limit 0,%d;",buf,buf,N);
+	sprintf (query, "select parola,frequenza, codice, lunghezza from personale where parola like \'%s%%\' union select parola,frequenza, codice, lunghezza from globale where parola like \'%s%%\' order by lunghezza asc, frequenza desc, parola asc limit 0,%d;",buf,buf,N);
 
 	//printf("\n%s\n",query);
 
@@ -704,7 +709,7 @@ void predire(){
 				//******************************************************************************
 				
 			}
-			else
+			else if(col==1)
 			{
 				printf ("\tfr=%s",val);
 				vetparole[numparoletrovate-1].frequenza=atoi(val);
@@ -1399,7 +1404,6 @@ void caricamatrice (){
 
 
 
-
 //Thread IRW
 void MyThread::run(void){
 
@@ -1844,7 +1848,8 @@ void MyThread::run(void){
 
 			// 1 inserimento nel DB / 0 modalità inserimento	
 
-			//printf("\nInsert new word!\n");
+			int cc=0;
+			stato=3;
 
 			if(inserimento==0){ //devo digitare una parola
 
@@ -1852,7 +1857,7 @@ void MyThread::run(void){
 				bzero(buf,50);
 				printf("\nDigit new word:\n");
 				emit received(QString::fromUtf8("Digit new word"),0,8);
-				stato=3;
+				
 				inserimento=1;
 				
 			}
@@ -1860,6 +1865,52 @@ void MyThread::run(void){
 
 				
 				if(cont_char!=0){
+
+					char query2[250];
+					bzero (query2,250);
+
+					sprintf (query2, "select COUNT(*) from (select parola from globale where parola like \'%s\' union select parola from personale where parola like \'%s\') ",buf);
+
+
+					int retval = sqlite3_prepare_v2(db,query2,-1,&stmt,0);
+
+					if(retval)
+					{
+						printf("\nDatabase Error!\n");
+						emit received(QString::fromUtf8("Database Error!"),0,8);
+						
+					}
+
+    	
+			    		int cols = sqlite3_column_count(stmt);
+
+
+					// fetch a row's status
+					retval = sqlite3_step(stmt);
+
+					if(retval == SQLITE_DONE) break;
+
+					else if(retval == SQLITE_ROW)
+					{
+
+						//const char *val = (const char*)sqlite3_column_text(stmt,0);
+
+							cc = atoi((const char*)sqlite3_column_text(stmt,0));
+
+						//sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
+
+					}
+					else
+					{
+					    // Some error encountered
+					    printf("Query Error!\n");
+					    return;
+					}
+
+printf("\n%d\n",cc);
+
+
+				   if(cc==0){
 				
 					printf("\nWord convertion.\n");
 					printf("\n-T9 code genereted: ");
@@ -1869,9 +1920,9 @@ void MyThread::run(void){
 					char query[250];
 					bzero (query,250);
 
-					sprintf (query, "insert into personale (codice,parola,frequenza) values (\'%s\',\'%s\',10);",codicet9,buf);
+					sprintf (query, "insert into personale (codice,parola,frequenza,lunghezza) values (\'%s\',\'%s\',\'%d\',\'%d\');",codicet9,buf,5,cont_char-1);
 
-					int  retval = sqlite3_exec(db,query,0,0,0);
+					int retval = sqlite3_exec(db,query,0,0,0);
 
 					if(retval)
 					{
@@ -1881,7 +1932,7 @@ void MyThread::run(void){
 					}
 					else{
 						printf("\nNew word inserted!\n");
-						emit received(QString::fromUtf8("New word inserted!"),0,8);
+						emit received(QString::fromUtf8("New: ")+ QString::fromUtf8(buf),0,8);
 
 					}
 
@@ -1889,12 +1940,25 @@ void MyThread::run(void){
 					bzero(buf,50);
 					inserimento=0;
 
+				   }
+				   else{
 
+					printf("\nWord duplicated!\n");
+					emit received(QString::fromUtf8("Word duplicated!"),0,8);
+					cont_char=0;
+					bzero(buf,50);
+					inserimento=0;
+			           }
+
+				
 
 				}
 				else{
+
 					printf("\nEmpty word!\n");
 					emit received(QString::fromUtf8("Empty word!"),0,8);
+					cont_char=0;
+					bzero(buf,50);
 					inserimento=0;
 
 				}
@@ -2224,7 +2288,11 @@ void MyThread::run(void){
 
 			if (strcmp(cod, videos)==0) tasto=XK_Tab;
 			else if (strcmp(cod, mytv)==0) {tasto=XK_Tab; modifier=1;}
-	   		else if (strcmp(cod, enter)==0) tasto =XK_Return;    	//Button Green
+	   		else if (strcmp(cod, enter)==0) {tasto =XK_Return;
+				if (stato==3){
+					bzero(buf,50); cont_char=0;
+				}
+			}    
 			else if (strcmp(cod, vol_plus)==0) tasto=XK_Page_Up;  	//Button Vol+
 	   		else if (strcmp(cod, vol_minus)==0) tasto =XK_Page_Down;  	//Button Vol-
 
@@ -2248,12 +2316,16 @@ void MyThread::run(void){
 		    		else if(stato==4) tasto = XK_0;
 
 
+
+
 			}
 
 
 			//Button backspace.
 	   		else if (strcmp(cod, mute_clear)==0)
 			{
+			  
+			  
 				if(stato==2 && luncodicet9>0){
 
 					//codicet9[luncodicet9]='\0';
@@ -2271,15 +2343,14 @@ void MyThread::run(void){
 						bzero (query,250);
 
 
-						sprintf (query, "select parola dist,frequenza, codice from personale where codice like \'%s%%\' union select parola dist,frequenza, codice from globale where codice like \'%s%%\' order by frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
-
+		  sprintf (query, "select parola,frequenza, codice, lunghezza from personale where codice like \'%s%%\' union select parola,frequenza, codice,lunghezza from globale where codice like \'%s%%\' order by lunghezza asc,frequenza desc, codice asc limit 0,%d;",codicet9,codicet9,N);
 
 
 						int  retval = sqlite3_prepare_v2(db,query,-1,&stmt,0);
 
 						if(retval)
 						{
-							printf("\nDatabase Error!\n");
+							printf("\nDatabase Error: searching in tables!\n");
 							return;
 						}
 
@@ -2355,7 +2426,7 @@ void MyThread::run(void){
 				
 
 								}
-								else
+								else if(col==1)
 								{
 									printf ("\tfr=%s",val);
 									vetparole[numparoletrovate-1].frequenza=atoi(val);
@@ -2393,7 +2464,8 @@ void MyThread::run(void){
 
 				tasto = XK_BackSpace;
 			
-				if(predizione==1 && stato==3){
+				if(predizione==1 && stato==3 && cont_char>0){
+printf("BUFF da clear: %s\n",buf);
 
 					//int l=strlen(buf);
 					//printf("Prima: %s\n",buf);
@@ -2527,9 +2599,6 @@ if(mod==8)
 
 
 
-
-
-
 //Function to connect to DB
 void connDB (){
 
@@ -2579,7 +2648,7 @@ int main( int argc, char *argv[])
 	window->setMinimumSize(185, 185);
 	window->move(wx,wy);
 	window->setWindowIcon(QIcon("./icon.png"));
-	//window->setWindowFlags(Qt::SplashScreen);  		//togliamo il bordo
+	window->setWindowFlags(Qt::SplashScreen);  		//togliamo il bordo
 	window->setWindowFlags(Qt::WindowStaysOnTopHint);
 
 	
@@ -2649,18 +2718,6 @@ int main( int argc, char *argv[])
 	//Start database connection
 	connDB();	
 
-/*
-	//Start IRW thread
-	int res;
-	pthread_t tel_thread;
-	res = pthread_create(&tel_thread, NULL, thtel, NULL);
-	if (res != 0)
-	{
-		printf("\nerrore partenza thread di gestione irda");
-		exit(EXIT_FAILURE);
-	}
-
-*/
 
 	//QLabel lbstatus("Status: Standard");
 	lbstatus= new QLabel("Status: abc");
