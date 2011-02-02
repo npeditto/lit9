@@ -173,8 +173,7 @@ int nav=0;		//nav=0 -> mouse / nav=1 -> arrows
 
 //*************************************************************
 char parola_maiuscolo[30];
-int mistero=0;
-int maiu_min=0;  //attivare/disattivare modalità qt maiuscolo      
+int mistero=0; 
 //*************************************************************
 
 
@@ -222,6 +221,46 @@ XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool pr
 	   return event;
 }
 
+void azzera_buf(){
+bzero(buf,50); cont_char=0;
+}
+
+void azzera_vetparole(){
+	//initialization of vetparole[]
+	int i=0;
+	for (i=0; i<N;i++)
+	{
+		vetparole[i].frequenza=0;
+		bzero(vetparole[i].parola,30);
+	}
+}
+
+char* uppercase(char *parola){
+	int num=0;
+	char minuscolo=0, maiuscolo=0;
+	int SCARTO = 32;                                      			/*1*/
+	int lun_minuscolo=0;
+
+	lun_minuscolo=strlen(parola);
+	for(num=0;num<lun_minuscolo;num++)
+	{
+		minuscolo=parola[num]; 						/*2*/
+		if (minuscolo>=97 && minuscolo<=122) 
+		{                          					/*3*/
+			maiuscolo = minuscolo-SCARTO; 			        /*4*/
+		//printf("\n Rappresentazione maiuscola %c",maiuscolo); 	/*5*/
+		//printf("\n Codice ASCII %d",maiuscolo);			/*6*/
+		}
+		else 
+		{
+			printf("\n Carattere non convertibile");
+			//maiuscolo= "X";
+		}
+
+		parola[num]=maiuscolo;
+	}
+	return parola;
+}
 
 //xlib function to simulate a fake press button
 void premitasto(Display *display, Window &winFocus, Window &winRoot, int key, int modifier){
@@ -416,12 +455,7 @@ void gestionet9 (int tasto){
 	int i=0;
 
 
-	//initialization of vetparole[]
-	for (i=0; i<N;i++)
-	{
-		vetparole[i].frequenza=0;
-		bzero(vetparole[i].parola,30);
-	}
+	azzera_vetparole();
 
 
 	//se passiamo 99 veniamo da una cancellazione
@@ -480,48 +514,14 @@ void gestionet9 (int tasto){
 			{
 				//to manage emphasis char
 				//******************************************************************************
-				if(lock==0)
+				if(lock==1)
 				{
-					printf ("%s",val);
-					sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
-
-
-				}				
-				else if(lock==1 && maiu_min==1)
-				{
-					char minuscolo=0, maiuscolo=0;
-					int SCARTO = 32;                                      			/*1*/
-					int lun_minuscolo=0;
-					int num=0;
-			
-					lun_minuscolo=strlen(val);
-
-					for(num=0;num<lun_minuscolo;num++)
-					{
-						minuscolo=val[num]; 						/*2*/
-						if (minuscolo>=97 && minuscolo<=122) 
-						{                          					/*3*/
-							maiuscolo = minuscolo-SCARTO; 			        /*4*/
-						//printf("\n Rappresentazione maiuscola %c",maiuscolo); 	/*5*/
-						//printf("\n Codice ASCII %d",maiuscolo);			/*6*/
-						}
-						else 
-						{
-							printf("\n Carattere non convertibile");
-							//maiuscolo= "X";
-						}
-
-						parola_maiuscolo[num]=maiuscolo;
-					}
-					printf ("%s",parola_maiuscolo);
-					sprintf(vetparole[numparoletrovate-1].parola,"%s",parola_maiuscolo);
+					val=(const char*)uppercase((char*)val);
 				}
 				//******************************************************************************
-
-
-
+				printf ("%s",val);
+				sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
 				
-
 			}
 			else if(col==1)
 			{
@@ -619,12 +619,7 @@ void predire(){
 	int i=0;
 
 
-	//initialization of vetparole[]
-	for (i=0; i<N;i++)
-	{
-		vetparole[i].frequenza=0;
-		bzero(vetparole[i].parola,30);
-	}
+	azzera_vetparole();
 
 	char query[250];
 	bzero (query,250);
@@ -672,41 +667,13 @@ void predire(){
 			{
 				//to manage emphasis char
 				//******************************************************************************
-				if(lock==0)
+				if(lock==1)
 				{
-					printf ("%s",val);
-					sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
-				}				
-				else if(lock==1 && maiu_min==1)
-				{
-					char minuscolo=0, maiuscolo=0;
-					int SCARTO = 32;                                      			/*1*/
-					int lun_minuscolo=0;
-					int num=0;
-			
-					lun_minuscolo=strlen(val);
-
-					for(num=0;num<lun_minuscolo;num++)
-					{
-						minuscolo=val[num]; 						/*2*/
-						if (minuscolo>=97 && minuscolo<=122) 
-						{                          					/*3*/
-							maiuscolo = minuscolo-SCARTO; 			        /*4*/
-						//printf("\n Rappresentazione maiuscola %c",maiuscolo); 	/*5*/
-						//printf("\n Codice ASCII %d",maiuscolo);			/*6*/
-						}
-						else 
-						{
-							printf("\n Carattere non convertibile");
-							//maiuscolo= "X";
-						}
-
-						parola_maiuscolo[num]=maiuscolo;
-					}
-					printf ("%s",parola_maiuscolo);
-					sprintf(vetparole[numparoletrovate-1].parola,"%s",parola_maiuscolo);
+					val=(const char*)uppercase((char*)val);
 				}
 				//******************************************************************************
+				printf ("%s",val);
+				sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
 				
 			}
 			else if(col==1)
@@ -782,7 +749,7 @@ void manuale(int tasto){
 			{
 				if (lock==0)
 					sprintf(vetparole[i].parola, "a");
-				else if (lock==1  && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "A");
 				man_let[i][0] = carattere[1][0]; 
 				man_let[i][1]=0;
@@ -791,7 +758,7 @@ void manuale(int tasto){
 			{
 				if (lock==0) 
 					sprintf(vetparole[i].parola, "b"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "B");
 				man_let[i][0] = carattere[1][1]; 
 				man_let[i][1]=0;
@@ -800,7 +767,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "c"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "C");
 				man_let[i][0] = carattere[1][2]; 
 				man_let[i][1]=0;
@@ -828,7 +795,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "d"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "D");
 				man_let[i][0] = carattere[2][0]; 
 				man_let[i][1]=0;
@@ -837,7 +804,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "e"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "E");
 				man_let[i][0] = carattere[2][1]; 
 				man_let[i][1]=0;
@@ -846,7 +813,7 @@ void manuale(int tasto){
 			{	
 				if(lock==0)
 					sprintf(vetparole[i].parola, "f"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "F");
 				man_let[i][0] = carattere[2][2]; 
 				man_let[i][1]=0;
@@ -873,7 +840,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "g"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "G");
 				man_let[i][0] = carattere[3][0]; 
 				man_let[i][1]=0;
@@ -882,7 +849,7 @@ void manuale(int tasto){
 			{
 				if (lock==0)
 					sprintf(vetparole[i].parola, "h"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "H");
 				man_let[i][0] = carattere[3][1]; 
 				man_let[i][1]=0;
@@ -891,7 +858,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "i"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "I");
 				man_let[i][0] = carattere[3][2]; 
 				man_let[i][1]=0;
@@ -917,7 +884,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "j"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "J");
 				man_let[i][0] = carattere[4][0]; 
 				man_let[i][1]=0;
@@ -926,7 +893,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "k"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "K"); 
 				man_let[i][0] = carattere[4][1]; 
 				man_let[i][1]=0;
@@ -935,7 +902,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "l"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "L"); 
 				man_let[i][0] = carattere[4][2]; 		
 				man_let[i][1]=0;
@@ -961,7 +928,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "m"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "M");
 				man_let[i][0] = carattere[5][0]; 
 				man_let[i][1]=0;
@@ -970,7 +937,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "n"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "N"); 
 				man_let[i][0] = carattere[5][1]; 
 				man_let[i][1]=0;
@@ -979,7 +946,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "o");
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "O"); 
 				man_let[i][0] = carattere[5][2]; 
 				man_let[i][1]=0;
@@ -1005,7 +972,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "p"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "P");
 				man_let[i][0] = carattere[6][0]; 
 				man_let[i][1]=0;
@@ -1014,7 +981,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "q"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "Q");
 				man_let[i][0] = carattere[6][1]; 
 				man_let[i][1]=0;
@@ -1023,7 +990,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "r"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "R");
 				man_let[i][0] = carattere[6][2]; 
 				man_let[i][1]=0;
@@ -1032,7 +999,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "s"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "S");
 				man_let[i][0] = carattere[6][3]; 
 				man_let[i][1]=0;
@@ -1057,7 +1024,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "t"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "T");
 				man_let[i][0] = carattere[7][0]; 
 				man_let[i][1]=0;
@@ -1066,7 +1033,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "u"); 
-				else if (lock==1 && maiu_min==1)
+				else if (lock==1)
 					sprintf(vetparole[i].parola, "U");
 				man_let[i][0] = carattere[7][1]; 
 				man_let[i][1]=0;
@@ -1075,7 +1042,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "v"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "V");
 				man_let[i][0] = carattere[7][2]; 
 				man_let[i][1]=0;
@@ -1091,7 +1058,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "w"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "W");
 				man_let[i][0] = carattere[8][0]; 
 				man_let[i][1]=0;
@@ -1100,7 +1067,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "x"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "X");
 				man_let[i][0] = carattere[8][1]; 
 				man_let[i][1]=0;
@@ -1109,7 +1076,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "y"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "Y");
 				man_let[i][0] = carattere[8][2]; 
 				man_let[i][1]=0;
@@ -1118,7 +1085,7 @@ void manuale(int tasto){
 			{
 				if(lock==0)
 					sprintf(vetparole[i].parola, "z"); 
-				else if(lock==1 && maiu_min==1)
+				else if(lock==1)
 					sprintf(vetparole[i].parola, "Z");
 				man_let[i][0] = carattere[8][3]; 
 				man_let[i][1]=0;
@@ -1528,6 +1495,7 @@ void MyThread::run(void){
 		//BUTTON GREEN TO ACTIVATE STANDARD MODE
 		else if (strcmp(cod, green)==0){
 
+			azzera_buf();
 
 			if(t==0){
 				t=1;
@@ -1649,42 +1617,91 @@ void MyThread::run(void){
 		//BUTTON LOCK
 		else if (strcmp(cod, caps)==0){
 
-			if(lock==1){
-			
-				lock=0;
+			if(homepage==0){
 
-				if(stato==1)
+				if(lock==1){ //MAIUSCOLO -> minuscolo
+			
+					lock=0;
+
+					if(stato==1)
+					{		
 						lbstatus->setText("Status: Selective");
 						//***********************************************************************************
-						if(maiu_min==1)
-							manuale(tasto);
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(""),d,2);
+
+		
+
+						manuale(tasto);
+
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+		
+						emit received(QString::fromUtf8(""),0,3);
+
 						//***********************************************************************************
-				if(stato==2)
+					}
+					if(stato==2)
+					{
 						lbstatus->setText("Status: T9 abc");
-				if(stato==3)
-						lbstatus->setText("Status: abc");
+
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(""),d,2);
+						
+						//codicet9[luncodicet9]='\0'; 
+						if (luncodicet9>0){luncodicet9--; codicet9[luncodicet9]='\0';gestionet9(tasto);}
+						else {bzero(codicet9,30);}
+
+						
 
 
-			}
-			else if(lock==0){
+						for (int d=0;d<N;d++) 
+							emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+				
+						emit received(QString::fromUtf8(""),0,3);
 
-				lock=1;
+					}
+					if(stato==3)
+							lbstatus->setText("Status: abc");
 
-				if(stato==1)
+
+				}
+				else if(lock==0){ //minuscolo -> MAIUSCOLO
+
+					lock=1;
+
+					if(stato==1)
+					{	
 						lbstatus->setText("Status: SELECTIVE");
 						//***********************************************************************************
-						if(maiu_min==1)
-							manuale(tasto);
-						//***********************************************************************************
 
-				if(stato==2)
+						for (int d=0;d<N;d++) emit received(QString::fromUtf8(""),d,2);
+						manuale(tasto);
+						for (int d=0;d<N;d++) emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+						emit received(QString::fromUtf8(""),0,3);
+
+						//***********************************************************************************
+					}
+					if(stato==2)
+					{
 						lbstatus->setText("Status: T9 ABC");
-				if(stato==3)
-						lbstatus->setText("Status: ABC");
+						for (int d=0;d<N;d++) emit received(QString::fromUtf8(""),d,2);
+						if (luncodicet9>0){luncodicet9--; codicet9[luncodicet9]='\0';gestionet9(tasto);}
+						else {bzero(codicet9,30);
+						}
+						
+						for (int d=0;d<N;d++) emit received(QString::fromUtf8(vetparole[d].parola),d,1);
+						emit received(QString::fromUtf8(""),0,3);
+
+
+					}
+					if(stato==3)
+							lbstatus->setText("Status: ABC");
+
+				}
 
 			}
-
-			
 
 		}
 
@@ -1721,32 +1738,50 @@ void MyThread::run(void){
 	   	{
 
 			if(homepage==0){
+				if(stato==2 || stato==3){
+					//if (indice==(N-1)){
+					if (indice==(numparoletrovate-1)){
 
-				if (indice==(N-1)){
+						emit received(QString::fromUtf8(""),indice,2);
+						emit received(QString::fromUtf8(""),0,3);
+
+						indice=0;
+					}
+					else{
+						indice=indice+1;
+						emit received(QString::fromUtf8(""),indice-1,2);
+						emit received(QString::fromUtf8(""),indice,3);
+					}
+				}
+				else if(stato==1){
+					if (indice==(N-1)){
 				
-					emit received(QString::fromUtf8(""),indice,2);
-					emit received(QString::fromUtf8(""),0,3);
+						emit received(QString::fromUtf8(""),indice,2);
+						emit received(QString::fromUtf8(""),0,3);
 
-					indice=0;
+						indice=0;
+					}
+					else{
+						indice=indice+1;
+						emit received(QString::fromUtf8(""),indice-1,2);
+						emit received(QString::fromUtf8(""),indice,3);
+
+
+					}
 				}
-				else{
-					indice=indice+1;
-					emit received(QString::fromUtf8(""),indice-1,2);
-					emit received(QString::fromUtf8(""),indice,3);
+				
 
-
-				}
 
 			}
-
-
 	   	}
+
 	   	else  if (strcmp(cod, ch_plus)==0)
 	   	{
 
 			if(homepage==0){
 		       		if (indice==0){
-					indice=N-1;
+					if (stato==1)indice=N-1;
+					else indice=numparoletrovate-1;
 					emit received(QString::fromUtf8(""),0,2);
 					emit received(QString::fromUtf8(""),indice,3);
 
@@ -1799,9 +1834,7 @@ void MyThread::run(void){
 
 				if (predizione==1)
 				{		
-					bzero(buf,50);
-			
-					cont_char=0;
+				azzera_buf();
 				}
 
 			}
@@ -1853,8 +1886,7 @@ void MyThread::run(void){
 
 			if(inserimento==0){ //devo digitare una parola
 
-				cont_char=0;
-				bzero(buf,50);
+				azzera_buf();
 				printf("\nDigit new word:\n");
 				emit received(QString::fromUtf8("Digit new word"),0,8);
 				
@@ -1936,8 +1968,7 @@ printf("\n%d\n",cc);
 
 					}
 
-					cont_char=0;
-					bzero(buf,50);
+					azzera_buf();
 					inserimento=0;
 
 				   }
@@ -1945,8 +1976,7 @@ printf("\n%d\n",cc);
 
 					printf("\nWord duplicated!\n");
 					emit received(QString::fromUtf8("Word duplicated!"),0,8);
-					cont_char=0;
-					bzero(buf,50);
+					azzera_buf();
 					inserimento=0;
 			           }
 
@@ -1957,8 +1987,7 @@ printf("\n%d\n",cc);
 
 					printf("\nEmpty word!\n");
 					emit received(QString::fromUtf8("Empty word!"),0,8);
-					cont_char=0;
-					bzero(buf,50);
+					azzera_buf();
 					inserimento=0;
 
 				}
@@ -2290,7 +2319,7 @@ printf("\n%d\n",cc);
 			else if (strcmp(cod, mytv)==0) {tasto=XK_Tab; modifier=1;}
 	   		else if (strcmp(cod, enter)==0) {tasto =XK_Return;
 				if (stato==3){
-					bzero(buf,50); cont_char=0;
+					azzera_buf();
 				}
 			}    
 			else if (strcmp(cod, vol_plus)==0) tasto=XK_Page_Up;  	//Button Vol+
@@ -2307,9 +2336,7 @@ printf("\n%d\n",cc);
 
 					tasto = XK_space; 
 
-					bzero(buf,50);
-				
-					cont_char=0;
+					azzera_buf();
 
 				}
 
@@ -2382,49 +2409,15 @@ printf("\n%d\n",cc);
 								if (col==0)
 								{
 									//to manage emphasis char
-									//******************************************************
-									if(lock==0)
+									//******************************************************************************
+									if(lock==1)
 									{
-										printf ("%s",val);
-										sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
-
-
-									}				
-									else if(lock==1 && maiu_min==1)
-									{
-										char minuscolo=0, maiuscolo=0;
-										int SCARTO = 32;                                  /*1*/
-										int lun_minuscolo=0;
-										int num=0;
-			
-										lun_minuscolo=strlen(val);
-
-										for(num=0;num<lun_minuscolo;num++)
-										{
-											minuscolo=val[num]; 			  /*2*/
-											if (minuscolo>=97 && minuscolo<=122) 
-											{                          		  /*3*/
-												maiuscolo = minuscolo-SCARTO; 	  /*4*/
-										//printf("\n Rappresentazione maiuscola %c",maiuscolo /*5*/
-										//printf("\n Codice ASCII %d",maiuscolo);	/*6*/
-											}
-											else 
-											{
-												printf("\n Carattere non convertibile");
-												//maiuscolo= "X";
-											}
-
-											parola_maiuscolo[num]=maiuscolo;
-										}
-										printf ("%s",parola_maiuscolo);
-										sprintf(vetparole[numparoletrovate-1].parola,"%s",parola_maiuscolo);
+										val=(const char*)uppercase((char*)val);
 									}
-									//*****************************************************
-
-
-
+									//******************************************************************************
+									printf ("%s",val);
+									sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
 				
-
 								}
 								else if(col==1)
 								{
@@ -2455,14 +2448,14 @@ printf("\n%d\n",cc);
 
 					}
 
-					
 
 				}
 
 
 
 
-				tasto = XK_BackSpace;
+				if(stato==2 && luncodicet9==0) tasto = XK_BackSpace;
+				
 			
 				if(predizione==1 && stato==3 && cont_char>0){
 printf("BUFF da clear: %s\n",buf);
@@ -2486,7 +2479,7 @@ printf("BUFF da clear: %s\n",buf);
 
 					}
 					
-					
+					tasto = XK_BackSpace;
 
 				}
 
@@ -2692,7 +2685,7 @@ int main( int argc, char *argv[])
 
 
 
-	bzero(buf,50);
+	azzera_buf();
 
 
 	//loading matrix of characters
