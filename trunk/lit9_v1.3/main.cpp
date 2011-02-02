@@ -372,7 +372,7 @@ void invio_parola(Display* display){
 		
 	}
 	else{
-
+/*
 	    	int dim_parola = strlen(vetparole[indice].parola);
 		char word[dim_parola];
 		sprintf(word,"%s",vetparole[indice].parola);
@@ -393,6 +393,55 @@ void invio_parola(Display* display){
 
 
 		}
+*/
+	    	int dim_parola = strlen(vetparole[indice].parola);
+		char word[dim_parola];
+		sprintf(word,"%s",vetparole[indice].parola);
+
+		char  *due;
+		due = (char*)malloc(2*sizeof(char));
+
+		for (int kk=0; kk < dim_parola; kk++)
+		{
+
+
+			char  *let;
+			let = (char*)malloc(2*sizeof(char));
+
+			if(kk==dim_parola-2)
+				due[0]=word[kk];
+			else if(kk==dim_parola-1)
+				due[1]=word[kk];
+			else {
+				sprintf(let,"%c",word[kk]);
+				//printf("\nlet: %s\n", let);
+
+				if(lock==1)
+					premitasto(display, winFocus, winRoot, XStringToKeysym(let),1);
+				if(lock==0)
+					premitasto(display, winFocus, winRoot, XStringToKeysym(let),0);
+
+			}
+			
+
+		}
+			
+
+			if(strcmp(due,"à")==0)
+				premitasto(display, winFocus, winRoot, XK_agrave,0);
+			else if(strcmp(due,"è")==0)
+				premitasto(display, winFocus, winRoot, XK_egrave,0);
+			else if(strcmp(due,"ì")==0)
+				premitasto(display, winFocus, winRoot, XK_igrave,0);
+			else if(strcmp(due,"ò")==0)
+				premitasto(display, winFocus, winRoot, XK_ograve,0);
+			else if(strcmp(due,"ù")==0)
+				premitasto(display, winFocus, winRoot, XK_ugrave,0);
+			else if(strcmp(due,"é")==0)
+				premitasto(display, winFocus, winRoot, XK_eacute,0);
+
+
+
 
 	}
 
