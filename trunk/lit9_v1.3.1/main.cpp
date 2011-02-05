@@ -45,7 +45,6 @@
 #include <QGraphicsWidget>
 #include <QMenu>
 #include <QAction>
-
 #include <QObject>
 #include <QThread>
 
@@ -90,11 +89,12 @@
 
 
 
-//DICHIARAZIONE VARIABILI GLOBALI----------------------------------------------------------------------------------------------------------------
+//GLOBAL VARIABLES DECLARATION----------------------------------------------------------------------------------------------------------------
 
 int flagcaricat9;
 
-//----da configurare------------------------------------------------------
+//----Default Parameters Configuration------------------------------------
+
 int passo=5;			//mouse step motion
 float speed=2.0;		//velocità di digitazione standard 
 int wx=0;			//posizione finestra
@@ -105,15 +105,16 @@ int pred=2;
 //------------------------------------------------------------------------
 
 
-int stato=3;            //stato iniziale: classico
-int tasto;		//codice Keysym del tasto
-int tastoprec;		//per la modalità manuale
-int indice;		//per lo scorrimento della list box
-int numparoletrovate;	//parole trovate nel DB dal T9
-int luncodicet9=0;
-char codicet9[30];
-int modifier=0;         //modificatore per i vari livelli della tastiera (caratteri accentati, maiuscoli, caratteri extra, etc...)
-int modi=0;
+int stato=3;            //Start staus -> Standard with Prediction
+int tasto;		//Keysym code of pressed button
+int tastoprec;		//for Selective mode
+int indice;		//Index to select element (word or character) from GUI
+int numparoletrovate;	//number of words find into database
+int luncodicet9=0;	//codicet9 length
+char codicet9[30];	//numeric sequence for T9 mode
+int modifier=0;         //Xlib modifier to represent all keyboard's characters
+int modi=0;		//another Xlib modifier
+wchar_t wcarattere[6];	//to insert the word into database
 
 
 sqlite3 *db;
@@ -123,16 +124,12 @@ sqlite3_stmt *stmt;
 int homepage=1;
 int firsttime=1;
 int refresh=1;
-int inserimento=0; 	//0->modalità di inserimento // 1->inserimento parola nel DB
-
+int inserimento=0; 	//0->digit new word  // 1->push new word into database
 
 	
 
 
-wchar_t wcarattere[6];//per inserimento parola
-
-
-//global declaration for QT-------------------------------------
+//global declaration for QT-------
 
 QLabel *array[N];
 	
@@ -144,7 +141,7 @@ QSystemTrayIcon *tray;
 
 QWidget *window;
 
-//--------------------------------------------------------------
+//--------------------------------
 
 
 
@@ -192,7 +189,7 @@ int predizione=1;
 
 
 
-//FUNCTION START--------------------------------------------------------------------------------------------------------------------------------
+//FUNCTIONS START--------------------------------------------------------------------------------------------------------------------------------
 
 
 //Xlib function to manage events
@@ -221,9 +218,16 @@ XKeyEvent createKeyEvent(Display *display, Window &win, Window &winRoot, bool pr
 	   return event;
 }
 
+
+
 void azzera_buf(){
-bzero(buf,50); cont_char=0;
+
+	bzero(buf,50); 
+	cont_char=0;
+
 }
+
+
 
 void azzera_vetparole(){
 	//initialization of vetparole[]
@@ -233,17 +237,21 @@ void azzera_vetparole(){
 		vetparole[i].frequenza=0;
 		bzero(vetparole[i].parola,30);
 	}
+
 }
 
 char* uppercase(char *parola){
+
 	int num=0;
 	char minuscolo=0, maiuscolo=0;
 	int SCARTO = 32;                                      	
 	int lun_minuscolo=0;
 	int kk=0;
 	char accentata[3];
+
 	bzero(accentata,3);
 	lun_minuscolo=strlen(parola);
+
 	for(num=0;num<lun_minuscolo-2;num++)
 	{
 		minuscolo=parola[num]; 			
@@ -252,28 +260,27 @@ char* uppercase(char *parola){
 		parola[num]=maiuscolo;
 	}
 
-		int i=0;
-		for (kk=lun_minuscolo-2, i=0; kk < lun_minuscolo; kk++, i++)
-			accentata[i]=parola[kk];
-		
+	int i=0;
+	for (kk=lun_minuscolo-2, i=0; kk < lun_minuscolo; kk++, i++)
+		accentata[i]=parola[kk];
+	
 
-		printf("SECONDA PARTE: %s\n", accentata);
-		if(strcmp(accentata,"à")==0) {parola[lun_minuscolo-2]='A'; parola[lun_minuscolo-1]='\'';}
-		else if(strcmp(accentata,"è")==0) {parola[lun_minuscolo-2]='E'; parola[lun_minuscolo-1]='\'';} 			
-		else if(strcmp(accentata,"é")==0) {parola[lun_minuscolo-2]='E'; parola[lun_minuscolo-1]='\'';} 			
-		else if(strcmp(accentata,"ì")==0) {parola[lun_minuscolo-2]='I'; parola[lun_minuscolo-1]='\'';} 			
-		else if(strcmp(accentata,"ò")==0) {parola[lun_minuscolo-2]='O'; parola[lun_minuscolo-1]='\'';} 			
-		else if(strcmp(accentata,"ù")==0) {parola[lun_minuscolo-2]='U'; parola[lun_minuscolo-1]='\'';} 			
-		else{
+	printf("SECONDA PARTE: %s\n", accentata);
+	if(strcmp(accentata,"à")==0) {parola[lun_minuscolo-2]='A'; parola[lun_minuscolo-1]='\'';}
+	else if(strcmp(accentata,"è")==0) {parola[lun_minuscolo-2]='E'; parola[lun_minuscolo-1]='\'';} 			
+	else if(strcmp(accentata,"é")==0) {parola[lun_minuscolo-2]='E'; parola[lun_minuscolo-1]='\'';} 			
+	else if(strcmp(accentata,"ì")==0) {parola[lun_minuscolo-2]='I'; parola[lun_minuscolo-1]='\'';} 			
+	else if(strcmp(accentata,"ò")==0) {parola[lun_minuscolo-2]='O'; parola[lun_minuscolo-1]='\'';} 			
+	else if(strcmp(accentata,"ù")==0) {parola[lun_minuscolo-2]='U'; parola[lun_minuscolo-1]='\'';} 			
+	else{
 			
-
-//			int lun_=strlen(accentata);
-//printf("Lun_: %d",accentata);
+			//int lun_=strlen(accentata);
+			//printf("Lun_: %d",accentata);
 			for(num=0;num<2;num++)
 			{
 				if (accentata[num]>=97 && accentata[num]<=122) 
 				parola[lun_minuscolo-2+num] = accentata[num]-SCARTO;
-//			printf("_: %c\n",maiuscolo);
+				//printf("_: %c\n",maiuscolo);
 				
 			}
 /*				minuscolo=accentata[num]; 			
@@ -285,6 +292,7 @@ char* uppercase(char *parola){
 			for (kk=0, i=2; kk < 2; kk++,i--){
 				parola[lun_minuscolo-i]=accentata[kk];
 			}
+*/
 
 /*			for(num=lun_minuscolo-2;num<lun_minuscolo;num++)
 				minuscolo=parola[num]; 			
@@ -292,11 +300,16 @@ char* uppercase(char *parola){
 					maiuscolo = minuscolo-SCARTO;
 				parola[num]=maiuscolo;
 			}*/
-		}	
+
+	}	
+
 	printf("parola: %s\n", parola);
 
 	return parola;
+
 }
+
+
 
 //xlib function to simulate a fake press button
 void premitasto(Display *display, Window &winFocus, Window &winRoot, int key, int modifier){
@@ -307,6 +320,7 @@ void premitasto(Display *display, Window &winFocus, Window &winRoot, int key, in
    	event = createKeyEvent(display, winFocus, winRoot, false, key, modifier);
    	XSendEvent(event.display, event.window, True, KeyPressMask, (XEvent *)&event);
 }
+
 
 
 //function to charge default configuration from "./config"
@@ -344,8 +358,8 @@ void caricaconfig(){
 //Open browser thread
 void *apribrowser(void*){
 
-       int sys = system("firefox");
- 	//system("google-chrome");
+       	int sys = system("firefox");
+	//system("google-chrome");
 	
 }
 
@@ -410,10 +424,12 @@ void invio_parola(Display* display){
 	else{
 
 	    	int dim_parola = strlen(vetparole[indice].parola);
+
 		//printf("lunghezaaaaaa: %d\n", dim_parola);
 		char word[dim_parola];
 		sprintf(word,"%s",vetparole[indice].parola);
-/***************************************************************************************************/
+
+		/***************************************************************************************************/
 		char accentata[2]; bzero(accentata,2);
 		int kk=0;
 			char  *let;
@@ -470,7 +486,9 @@ void invio_parola(Display* display){
 		}
 
 
-/***************************************************************************************************/
+		/***************************************************************************************************/
+
+
 	}
 
 
@@ -528,12 +546,9 @@ void gestionet9(int tasto){
 
 	numparoletrovate=0;
 
-
 	int i=0;
 
-
 	azzera_vetparole();
-
 
 	//se passiamo 99 veniamo da una cancellazione
 	if ((tasto<99) && (tasto>0))
@@ -1127,6 +1142,7 @@ void manuale(int tasto){
 			else if (i==3) {sprintf(vetparole[i].parola, "ù"); man_let[i][0] = carattere[7][3]; man_let[i][1]=0;}
 			else if (i==4) {sprintf(vetparole[i].parola, "8"); man_let[i][0] = carattere[7][4]; man_let[i][1]=0;}
 			else if (i==5) {sprintf(vetparole[i].parola, " "); man_let[i][0] = carattere[7][5]; man_let[i][1]=0;}
+
 		}
 
 		else if (tasto==9)
@@ -1192,8 +1208,6 @@ void manuale(int tasto){
 		
 		
 
-
-
 	}
 
 	indice=0;
@@ -1202,6 +1216,8 @@ void manuale(int tasto){
 
 
 }
+
+
 
 
 //STANDARD MODE FUNCTION WITH PREDICTION
@@ -1542,6 +1558,7 @@ void MyThread::run(void){
 
 
 			if(t==0){
+
 				t=1;
 				emit received(QString::fromUtf8(""),0,4);
 
@@ -1602,15 +1619,12 @@ void MyThread::run(void){
 		//BUTTON BLUE TO ACTIVATE NUMERIC MODE
 		else if (strcmp(cod, blue)==0){
 
-
-
 			if(t==1){
 				t=0;
 				emit received(QString::fromUtf8(""),0,5);
 
 			}
 
-		
 			stato=4;
 
 			printf("\nNumeric\n");
@@ -1637,6 +1651,7 @@ void MyThread::run(void){
 
 		//BUTTONS ARROW TO MOVE MOUSE AND MOVE CURSOR
 	   	else if (strcmp(cod, down)==0) {
+
 			if(nav==0)
 				XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo);      //tasto DOWN
 			else if(nav==1)
@@ -1644,6 +1659,7 @@ void MyThread::run(void){
 
 		}
 	   	else if (strcmp(cod, up)==0) {
+
 			if(nav==0)
 				XWarpPointer(display, None, None, 0, 0, 0, 0, 0,passo*(-1));   //tasto UP
 			else if(nav==1)
@@ -1652,6 +1668,7 @@ void MyThread::run(void){
 
 
 	   	else if (strcmp(cod, right)==0) {
+
 			if(nav==0)
 				XWarpPointer(display, None, None, 0, 0, 0, 0, passo, 0);    //tasto RIGHT
 			else if(nav==1)
@@ -1660,6 +1677,7 @@ void MyThread::run(void){
 
 
 	   	else if (strcmp(cod, left)==0) {
+
 			if(nav==0)
 				XWarpPointer(display, None, None, 0, 0, 0, 0, passo*(-1),0); //tasto LEFT
 			else if(nav==1)
@@ -1693,7 +1711,6 @@ void MyThread::run(void){
 
 		//BUTTON LOCK
 		else if (strcmp(cod, caps)==0){
-
 
 
 			if(homepage==0){
@@ -1816,7 +1833,9 @@ void MyThread::run(void){
 	   	{
 
 			if(homepage==0){
+
 				if(stato==2 || stato==3){
+
 					//if (indice==(N-1)){
 					if (indice==(numparoletrovate-1)){
 
@@ -1830,8 +1849,10 @@ void MyThread::run(void){
 						emit received(QString::fromUtf8(""),indice-1,2);
 						emit received(QString::fromUtf8(""),indice,3);
 					}
+
 				}
 				else if(stato==1){
+
 					if (indice==(N-1)){
 				
 						emit received(QString::fromUtf8(""),indice,2);
@@ -1844,20 +1865,21 @@ void MyThread::run(void){
 						emit received(QString::fromUtf8(""),indice-1,2);
 						emit received(QString::fromUtf8(""),indice,3);
 
-
 					}
+
 				}
 				
-
-
 			}
+
 	   	}
 
 	   	else  if (strcmp(cod, ch_plus)==0)
 	   	{
 
 			if(homepage==0){
+
 		       		if (indice==0){
+
 					if (stato==1)indice=N-1;
 					else indice=numparoletrovate-1;
 					emit received(QString::fromUtf8(""),0,2);
@@ -1865,11 +1887,13 @@ void MyThread::run(void){
 
 				}
 		       		else{
+
 					indice = indice-1;
 					emit received(QString::fromUtf8(""),indice+1,2);
 					emit received(QString::fromUtf8(""),indice,3);
 
 				}
+
 			}
 
 	   	}
@@ -1912,7 +1936,7 @@ void MyThread::run(void){
 
 				if (predizione==1)
 				{		
-				azzera_buf();
+					azzera_buf();
 				}
 
 			}
@@ -1924,7 +1948,6 @@ void MyThread::run(void){
 		//Button "OK" -> mouse left click
 	   	else if (strcmp(cod, ok)==0)
 	   	{
-
 
 			XEvent event;
 			memset(&event, 0x00, sizeof(event));
@@ -1954,15 +1977,15 @@ void MyThread::run(void){
 		}
 
 
-		//
+		//BUTTON to insert a new word into database 
 	   	else if (strcmp(cod, picture)==0){
 
-			// 1 inserimento nel DB / 0 modalità inserimento	
+			//inserimento=0->digit new word  // inserimento=1->push new word into database
 
 			int cc=0;
 			stato=3;
 
-			if(inserimento==0){ //devo digitare una parola
+			if(inserimento==0){ 
 
 				azzera_buf();
 				printf("\nDigit new word:\n");
@@ -1971,7 +1994,7 @@ void MyThread::run(void){
 				inserimento=1;
 				
 			}
-			else if(inserimento==1){ //inserisco la parola nel DB
+			else if(inserimento==1){ 
 
 				
 				if(cont_char!=0){
@@ -1988,7 +2011,7 @@ void MyThread::run(void){
 					{
 						printf("\nDatabase Error!\n");
 						emit received(QString::fromUtf8("Database Error!"),0,8);
-						
+				
 					}
 
     	
@@ -2017,46 +2040,46 @@ void MyThread::run(void){
 					    return;
 					}
 
-printf("\n%d\n",cc);
+					//printf("\n%d\n",cc);
 
 
-				   if(cc==0){
-				
-					printf("\nWord convertion.\n");
-					printf("\n-T9 code genereted: ");
-					numerit9(buf);
-					printf("\n");
-				
-					char query[250];
-					bzero (query,250);
+					   if(cc==0){
+			
+						printf("\nWord convertion.\n");
+						printf("\n-T9 code genereted: ");
+						numerit9(buf);
+						printf("\n");
+			
+						char query[250];
+						bzero (query,250);
 
-					sprintf (query, "insert into personale (codice,parola,frequenza,lunghezza) values (\'%s\',\'%s\',\'%d\',\'%d\');",codicet9,buf,5,cont_char-1);
+						sprintf (query, "insert into personale (codice,parola,frequenza,lunghezza) values (\'%s\',\'%s\',\'%d\',\'%d\');",codicet9,buf,5,cont_char-1);
 
-					int retval = sqlite3_exec(db,query,0,0,0);
+						int retval = sqlite3_exec(db,query,0,0,0);
 
-					if(retval)
-					{
-						printf("\nDatabase Error! or Word duplicated into database!\n");
+						if(retval)
+						{
+							printf("\nDatabase Error! or Word duplicated into database!\n");
+							emit received(QString::fromUtf8("Word duplicated!"),0,8);
+							//return;
+						}
+						else{
+							printf("\nNew word inserted!\n");
+							emit received(QString::fromUtf8("New: ")+ QString::fromUtf8(buf),0,8);
+
+						}
+
+						azzera_buf();
+						inserimento=0;
+
+					   }
+					   else{
+
+						printf("\nWord duplicated!\n");
 						emit received(QString::fromUtf8("Word duplicated!"),0,8);
-						//return;
-					}
-					else{
-						printf("\nNew word inserted!\n");
-						emit received(QString::fromUtf8("New: ")+ QString::fromUtf8(buf),0,8);
-
-					}
-
-					azzera_buf();
-					inserimento=0;
-
-				   }
-				   else{
-
-					printf("\nWord duplicated!\n");
-					emit received(QString::fromUtf8("Word duplicated!"),0,8);
-					azzera_buf();
-					inserimento=0;
-			           }
+						azzera_buf();
+						inserimento=0;
+					   }
 
 				
 
@@ -2128,7 +2151,6 @@ printf("\n%d\n",cc);
 
 					for (int d=0;d<N;d++) 
 						emit received(QString::fromUtf8(""),d,2);
-
 				
 					manuale(tasto);
 
@@ -2370,7 +2392,6 @@ printf("\n%d\n",cc);
 	   		else if (strcmp(cod, mute_clear)==0)
 			{
 			  
-			  
 				if(stato==2 && luncodicet9>0){
 
 					//codicet9[luncodicet9]='\0';
@@ -2427,12 +2448,12 @@ printf("\n%d\n",cc);
 								if (col==0)
 								{
 									//to manage emphasis char
-									//******************************************************************************
+									//*******************************************************
 									if(lock==1)
 									{
 										val=(const char*)uppercase((char*)val);
 									}
-									//******************************************************************************
+									//*******************************************************
 									printf ("%s",val);
 									sprintf(vetparole[numparoletrovate-1].parola,"%s",val);
 				
@@ -2477,7 +2498,8 @@ printf("\n%d\n",cc);
 				
 			
 				if(predizione==1 && stato==3 && cont_char>0){
-printf("BUFF da clear: %s\n",buf);
+
+					printf("BUFFER to clear: %s\n",buf);
 
 					//int l=strlen(buf);
 					//printf("Prima: %s\n",buf);
@@ -2532,6 +2554,7 @@ printf("BUFF da clear: %s\n",buf);
 			modifier=0;	//for backtab button
 
 		}
+
 		if(nav==1){												
 
 			Window winRoot = XDefaultRootWindow(display);
@@ -2562,42 +2585,40 @@ printf("BUFF da clear: %s\n",buf);
 void MyThread::esegui(QString msg , int i, int mod)
 {
 
-
-//mod=1 -> set text
-//mod=2 -> set white
-//mod=3 -> set green
-//mod=4 -> show
-//mod=5 -> hide
-//mod=6 -> exit
-//mod=7 -> label motion 
-//mod=8 -> label status
-
+	//mod=1 -> set text
+	//mod=2 -> set white
+	//mod=3 -> set green
+	//mod=4 -> show
+	//mod=5 -> hide
+	//mod=6 -> exit
+	//mod=7 -> label motion 
+	//mod=8 -> label status
 
 
-if(mod==1)
-	array[i]->setText(msg);
+	if(mod==1)
+		array[i]->setText(msg);
 
-if(mod==2)
-	array[i]->setStyleSheet( "background-color: white" );
+	if(mod==2)
+		array[i]->setStyleSheet( "background-color: white" );
 
-if(mod==3)
-	array[i]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
+	if(mod==3)
+		array[i]->setStyleSheet( "background-color: rgb( 0,255,0 )" );
 
 
-if(mod==4)
-	window->show();
+	if(mod==4)
+		window->show();
 
-if(mod==5)
-	window->hide();
+	if(mod==5)
+		window->hide();
 
-if(mod==6)
-	window->close();
+	if(mod==6)
+		window->close();
 
-if(mod==7)
-	lbmotion->setText(msg);
+	if(mod==7)
+		lbmotion->setText(msg);
 
-if(mod==8) 
-	lbstatus->setText(msg);
+	if(mod==8) 
+		lbstatus->setText(msg);
 
 
 }
@@ -2664,7 +2685,7 @@ int main( int argc, char *argv[])
 
 	
 
-	//GESTIONE DELLA TRAY ICON-----------------------------------------------------------------------------
+	//TRAY ICON-----------------------------------------------------------------------------
 
 		//creo la tray icon
 		tray = new QSystemTrayIcon(QIcon("./icon.png"));
@@ -2697,7 +2718,6 @@ int main( int argc, char *argv[])
 		//QObject::connect(about_action, SIGNAL(triggered()), window, SLOT( tray_about() ));
 
 
-	
 	//-----------------------------------------------------------------------------------------------------
 
 
@@ -2709,7 +2729,6 @@ int main( int argc, char *argv[])
 	//loading matrix of characters
 	caricamatrice();
 
-	
 
 	printf("\nConfiguration loaded.\n");
 	printf("- Mouse step motion: %d\n",passo);
@@ -2763,8 +2782,6 @@ int main( int argc, char *argv[])
 	//brushY.setStyle(Qt::SolidPattern);
 	paletteY.setBrush(QPalette::Active, QPalette::WindowText, brushY);
 	paletteY.setBrush(QPalette::Inactive, QPalette::WindowText, brushY);
-
-
 
 
 
