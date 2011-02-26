@@ -2555,14 +2555,17 @@ void MyThread::run(void){
 
 		}
 
-		if(nav==1){												
+		if(( strcmp(cod, up)==0 || strcmp(cod, down)==0 || strcmp(cod, right)==0 || strcmp(cod, left)==0) && nav==1)			
+		{													
 
 			Window winRoot = XDefaultRootWindow(display);
 			Window winFocus;
 			int revert;
 			XGetInputFocus(display, &winFocus, &revert);
 			premitasto(display, winFocus, winRoot,tasto,modifier);
+
 		}
+
 	
 		if (strcmp(cod, music)==0){
 			Window winRoot = XDefaultRootWindow(display);
